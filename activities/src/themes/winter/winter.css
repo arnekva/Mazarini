@@ -1,0 +1,86 @@
+/* Vinter - icy blues on a polar night, northern lights, snow falling and piling up. */
+
+:root[data-theme="winter"] {
+  --background: #060b15;
+  --foreground: #eef4fb;
+  --card: #101a2a;
+  --card-border: #22334f;
+  --muted: #93a4ba;
+
+  --gold: #f4c96a;
+  --gold-glow: rgba(244, 201, 106, 0.22);
+  --purple: #a5b4fc;
+  --purple-glow: rgba(165, 180, 252, 0.2);
+  --blue: #60a5fa;
+  --blue-glow: rgba(96, 165, 250, 0.2);
+  --green: #5ed3a5;
+  --green-glow: rgba(94, 211, 165, 0.2);
+  --red: #f87171;
+  --red-glow: rgba(248, 113, 113, 0.2);
+  --teal: #7dd3fc;
+  --teal-glow: rgba(125, 211, 252, 0.2);
+
+  --theme-card-back: "❄️";
+  --theme-card-back-bg: linear-gradient(135deg, #1d4f80, #0a1a33);
+  --theme-card-back-border: rgba(200, 230, 255, 0.5);
+
+  background: radial-gradient(ellipse at 50% 120%, rgba(120, 170, 230, 0.16) 0%, transparent 55%), var(--background);
+  background-attachment: fixed;
+}
+
+:root[data-theme="winter"] [data-theme-decor="winter"] {
+  display: block;
+}
+
+/* Northern lights: soft green-teal bands drifting slowly along the top. */
+.wntAurora {
+  position: absolute;
+  top: -40px;
+  left: -20%;
+  right: -20%;
+  height: 260px;
+  background: radial-gradient(ellipse 35% 45% at 25% 50%, rgba(80, 230, 170, 0.22), transparent 70%),
+    radial-gradient(ellipse 30% 40% at 55% 35%, rgba(90, 200, 240, 0.16), transparent 70%),
+    radial-gradient(ellipse 30% 45% at 80% 55%, rgba(150, 120, 240, 0.14), transparent 70%);
+  filter: blur(10px);
+  animation: wntAurora 16s ease-in-out infinite alternate;
+}
+
+@keyframes wntAurora {
+  from {
+    transform: translateX(-6%) skewX(-6deg);
+    opacity: 0.75;
+  }
+  to {
+    transform: translateX(6%) skewX(6deg);
+    opacity: 1;
+  }
+}
+
+/* Frost creeping in from the corners. */
+.wntFrost {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 0 0, rgba(210, 235, 255, 0.14), transparent 22%),
+    radial-gradient(circle at 100% 0, rgba(210, 235, 255, 0.1), transparent 18%),
+    radial-gradient(circle at 0 100%, rgba(210, 235, 255, 0.1), transparent 20%),
+    radial-gradient(circle at 100% 100%, rgba(210, 235, 255, 0.14), transparent 22%);
+}
+
+/* Snow piled up along the bottom, in drifts. */
+.wntDrift {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60px;
+  background: radial-gradient(ellipse 30% 70% at 15% 100%, rgba(235, 245, 255, 0.2), transparent 70%),
+    radial-gradient(ellipse 35% 60% at 55% 100%, rgba(235, 245, 255, 0.16), transparent 70%),
+    radial-gradient(ellipse 30% 80% at 90% 100%, rgba(235, 245, 255, 0.2), transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wntAurora {
+    animation: none;
+  }
+}

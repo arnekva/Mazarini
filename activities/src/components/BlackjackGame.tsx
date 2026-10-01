@@ -1,6 +1,9 @@
 "use client"
 
 import { callApi } from "@/lib/apiClient"
+import { recommendMove } from "@/lib/blackjackStrategy"
+import { BlackjackAdvice } from "./BlackjackAdvice"
+import adviceStyles from "./BlackjackAdvice.module.css"
 import { isAdminUser } from "@/lib/admin"
 import { proxyImageUrl } from "@/lib/imgProxy"
 import { useLivePolling } from "@/lib/liveSignal"
@@ -21,6 +24,8 @@ interface HandView {
   cards: CardView[]
   status: HandStatus
   value: number
+  /** Doubled down - twice the buy-in riding on it. */
+  doubled?: boolean
 }
 
 interface PlayerView {
@@ -65,6 +70,8 @@ interface TableView {
   buyIn: number
   myChips: number
   myRedealsAvailable: number
+  /** Only on a seat funded by a deathroll pot win: what's left of that pot money - the most this seat can bet. */
+  myPotBankroll?: number
   myRedealDeniedThisRound: boolean
   iAmPlaying: boolean
   iAmSpectating: boolean
@@ -152,7 +159,10 @@ function HandBlock({ hand, result, active, isMine }: { hand: HandView; result?: 
         ))}
       </div>
       <div className={styles.handFooter}>
-        <span className={styles.value}>{hand.value}</span>
+        <span className={styles.value}>
+          {hand.value}
+          {hand.doubled && <span className={styles.doubledBadge}>×2</span>}
+        </span>
         <span className={`${styles.status} ${hand.status === "bust" ? styles.statusBust : ""} ${result === "win" || result === "blackjack" ? styles.statusWin : ""}`}>
           {result ? resultLabel[result] : label}
         </span>
@@ -304,10 +314,12 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
       | "hit"
       | "stand"
       | "split"
+      | "double"
       | "requestRedeal"
       | "voteRedeal"
       | "setBet"
       | "voteBet"
+      | "ownChips"
       | "fc",
     extra?: Record<string, unknown>
   ) {
@@ -493,7 +505,18 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
   const dealCooldownMs = table.roundOverAt ? Math.max(0, (table.roundStartCooldownMs ?? 3000) - (now - table.roundOverAt)) : 0
   const canDeal = table.iAmPlaying && table.status !== "playing" && table.players.length > 0 && dealCooldownMs === 0
   const canAct = table.status === "playing" && !!myActiveHand
-  const canSplit = !!myActiveHand && myActiveHand.cards.length === 2 && myActiveHand.cards[0].rank === myActiveHand.cards[1].rank && table.myChips >= table.buyIn
+  const playingPotMoney = table.myPotBankroll !== undefined
+  // A pot-funded seat only ever bets the pot money, never the chips the player had before.
+  const mySpendable = playingPotMoney ? Math.min(table.myChips, table.myPotBankroll!) : table.myChips
+  // Double down: any hand still on its first two cards, split hands included, with a buy-in to spare.
+  const canDouble = !!myActiveHand && myActiveHand.cards.length === 2 && mySpendable >= table.buyIn
+  const canSplit = !!myActiveHand && myActiveHand.cards.length === 2 && myActiveHand.cards[0].rank === myActiveHand.cards[1].rank && mySpendable >= table.buyIn
+  // Basic strategy for the hand that's up, against the dealer's face-up card (the other one is hidden while the round is on).
+  const dealerUp = table.dealer.hand[0]
+  const advice =
+    canAct && myActiveHand && dealerUp && dealerUp.rank !== "?"
+      ? recommendMove({ cards: myActiveHand.cards, dealerUp, canDouble, canSplit })
+      : null
   const iAmSittingOut = table.status === "playing" && me?.sittingOut
   const canAdjustBet = table.iAmPlaying && table.status !== "playing" && !table.betVote
   // "Deal på ny" only exists before the first card is drawn (or a split made) - after that the hand has been played. Natural blackjack still counts.
@@ -504,7 +527,7 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
       <div className={styles.topBar}>
         <p className={styles.info}>
           {table.players.length} spiller{table.players.length === 1 ? "" : "e"} · Buy-in: {table.buyIn}
-          {table.iAmPlaying ? ` · Dine chips: ${table.myChips}` : ""}
+          {table.iAmPlaying ? (playingPotMoney ? ` · Pott-penger igjen: ${table.myPotBankroll}` : ` · Dine chips: ${table.myChips}`) : ""}
         </p>
         <button className={styles.leaveBtn} type="button" disabled={busy} onClick={() => action("leave")}>
           {table.iAmSpectating ? "Slutt å se på" : "Forlat bordet"}
@@ -571,8 +594,20 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
 
       {table.iAmSpectating && <p className={styles.info}>Du ser på - ikke med i spillet.</p>}
 
-      {table.iAmPlaying && iAmSittingOut && (
+      {table.iAmPlaying && iAmSittingOut && !playingPotMoney && (
         <p className={styles.info}>Du har ikke nok chips til denne runden - blir med igjen automatisk neste runde du har råd til.</p>
+      )}
+
+      {table.iAmPlaying && playingPotMoney && mySpendable < table.buyIn && table.status !== "playing" && (
+        <div className={styles.voteBanner}>
+          <p className={styles.info}>
+            {mySpendable <= 0 ? "Pott-pengene er brukt opp." : `Du har bare ${mySpendable} pott-penger igjen - ikke nok til buy-in på ${table.buyIn}.`} Vil du spille
+            videre med dine egne chips?
+          </p>
+          <button className={styles.redealBtn} type="button" disabled={busy} onClick={() => action("ownChips")}>
+            Spill videre med egne chips
+          </button>
+        </div>
       )}
 
       {table.iAmPlaying && table.redealVote && (
@@ -649,22 +684,29 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
           >
             Sett satsing
           </button>
-          <button className={styles.redealBtn} type="button" disabled={busy || table.myChips <= 0} onClick={() => action("setBet", { allIn: true })}>
-            All in ({table.myChips})
+          <button className={styles.redealBtn} type="button" disabled={busy || mySpendable <= 0} onClick={() => action("setBet", { allIn: true })}>
+            All in ({mySpendable})
           </button>
         </div>
       )}
 
+      {canAct && advice && <BlackjackAdvice advice={advice} />}
+
       {canAct && (
         <div className={styles.actionRow}>
-          <button className={styles.hitBtn} type="button" disabled={busy} onClick={() => action("hit")}>
+          <button className={`${styles.hitBtn} ${advice?.move === "hit" ? adviceStyles.recommended : ""}`} type="button" disabled={busy} onClick={() => action("hit")}>
             Hit
           </button>
-          <button className={styles.standBtn} type="button" disabled={busy} onClick={() => action("stand")}>
+          <button className={`${styles.standBtn} ${advice?.move === "stand" ? adviceStyles.recommended : ""}`} type="button" disabled={busy} onClick={() => action("stand")}>
             Stand
           </button>
+          {canDouble && (
+            <button className={`${styles.doubleBtn} ${advice?.move === "double" ? adviceStyles.recommended : ""}`} type="button" disabled={busy} onClick={() => action("double")}>
+              Double
+            </button>
+          )}
           {canSplit && (
-            <button className={styles.splitBtn} type="button" disabled={busy} onClick={() => action("split")}>
+            <button className={`${styles.splitBtn} ${advice?.move === "split" ? adviceStyles.recommended : ""}`} type="button" disabled={busy} onClick={() => action("split")}>
               Split
             </button>
           )}

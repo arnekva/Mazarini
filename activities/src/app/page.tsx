@@ -5,7 +5,7 @@ import { isAdminUser } from "@/lib/admin"
 import { useDiscord } from "@/providers/discordProvider"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 import styles from "./page.module.css"
 
 type ChallengeId = "flag" | "outline" | "capital" | "mastermind"
@@ -21,6 +21,7 @@ interface HubStatus {
   chips: number
   dailyClaimedToday: boolean
   dailyStreak: number
+  giftWaiting?: boolean
   wheelSpinsLeft: number
   dondTokens: number
   challengesCompleted: number
@@ -28,12 +29,20 @@ interface HubStatus {
   challenges: Record<ChallengeId, { completed: boolean; numAttempts: number }>
 }
 
+const noSubscribe = () => () => {}
+
 export default function Home() {
   const { accessToken, ready, discordUser, authError } = useDiscord()
   const router = useRouter()
   const [status, setStatus] = useState<HubStatus | null>(null)
   const [redirecting, setRedirecting] = useState(false)
   const isAdmin = isAdminUser(discordUser?.id)
+  // Song Rank is tucked away unless the page was opened with ?songrank=true (read straight off the URL; false while server-rendering).
+  const showSongRank = useSyncExternalStore(
+    noSubscribe,
+    () => new URLSearchParams(window.location.search).get("songrank") === "true",
+    () => false
+  )
 
   useEffect(() => {
     if (!accessToken) return
@@ -106,7 +115,9 @@ export default function Home() {
             <div className={styles.row}>
               <HubCard href="/daily-claim" enabled={loggedIn} cardClass="cardGold">
                 Daily claim
-                <span className={styles.cardSub}>{status?.dailyClaimedToday ? "Hentet i dag" : status ? `Streak: ${status.dailyStreak}` : " "}</span>
+                <span className={styles.cardSub}>
+                  {status?.giftWaiting ? "🎁 Gave venter!" : status?.dailyClaimedToday ? "Hentet i dag" : status ? `Streak: ${status.dailyStreak}` : " "}
+                </span>
               </HubCard>
               <HubCard href="/wheel" enabled={loggedIn} cardClass="cardPurple">
                 Lykkehjul
@@ -122,6 +133,12 @@ export default function Home() {
               <span className={styles.cardSub}>{status ? `${status.dondTokens} token${status.dondTokens === 1 ? "" : "s"}` : " "}</span>
             </HubCard>
             {isAdmin && (
+              <HubCard href="/admin" enabled cardClass="cardRed" fullWidth>
+                Admin
+                <span className={styles.cardSub}>Daglig gave og andre kontroller</span>
+              </HubCard>
+            )}
+            {isAdmin && showSongRank && (
               <HubCard href="/song-rank" enabled cardClass="cardGreen" fullWidth>
                 Song Rank
                 <span className={styles.cardSub}>Rangér en spilleliste</span>

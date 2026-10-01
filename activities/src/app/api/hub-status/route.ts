@@ -1,5 +1,6 @@
 import { FirebaseHelper } from "@/lib/db/firebaseHelper"
 import { authenticateRequest } from "@/lib/discordAuth"
+import { readDailyGift } from "@/lib/dailyGift"
 import { getChallengesCompletedCount } from "@/lib/dailyHub"
 import { MAX_REWARDED_CHALLENGES_PER_DAY } from "@/lib/gameValues"
 
@@ -10,13 +11,15 @@ export async function GET(request: Request) {
   if (error) return error
 
   const firebase = new FirebaseHelper()
-  const dbUser = (await firebase.getUser(user.id)) ?? {}
+  const [dbUser, gift] = await Promise.all([firebase.getUser(user.id).then((u) => u ?? {}), readDailyGift(firebase)])
   const stats = dbUser.dailyGameStats ?? {}
 
   return Response.json({
     chips: dbUser.chips ?? 0,
     dailyClaimedToday: !!dbUser.daily?.claimedToday,
     dailyStreak: dbUser.daily?.streak ?? 0,
+    // An admin-picked gift (see lib/dailyGift.ts) this person can still choose from the Daily claim page.
+    giftWaiting: !!gift && gift.recipients.includes(user.id) && !gift.claims?.[user.id],
     wheelSpinsLeft: dbUser.dailySpins ?? 1,
     dondTokens: (dbUser.dondTokens?.basic ?? 0) + (dbUser.dondTokens?.premium ?? 0) + (dbUser.dondTokens?.elite ?? 0),
     // A 4th completion is real (shows as "solved" on its own card) but doesn't earn a reward, so the

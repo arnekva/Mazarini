@@ -1,0 +1,196 @@
+/* Tilbake på jobb - office slate and coffee brown, sticky notes, a clock that won't slow down and a steaming cup. */
+
+:root[data-theme="backtowork"] {
+  --background: #0d0f13;
+  --foreground: #eef0f3;
+  --card: #181b21;
+  --card-border: #2e333d;
+  --muted: #979ead;
+
+  --gold: #e3b562;
+  --gold-glow: rgba(227, 181, 98, 0.2);
+  --purple: #9d8cff;
+  --purple-glow: rgba(157, 140, 255, 0.18);
+  --blue: #5b8def;
+  --blue-glow: rgba(91, 141, 239, 0.2);
+  --green: #52c48a;
+  --green-glow: rgba(82, 196, 138, 0.18);
+  --red: #e86a5c;
+  --red-glow: rgba(232, 106, 92, 0.2);
+  --teal: #5cc4d1;
+  --teal-glow: rgba(92, 196, 209, 0.18);
+
+  --theme-card-back: "💼";
+  --theme-card-back-bg: linear-gradient(135deg, #4a3526, #1f150e);
+  --theme-card-back-border: rgba(227, 181, 98, 0.45);
+
+  background: radial-gradient(ellipse at 50% -20%, rgba(180, 200, 230, 0.08) 0%, transparent 55%), var(--background);
+  background-attachment: fixed;
+}
+
+:root[data-theme="backtowork"] [data-theme-decor="backtowork"] {
+  display: block;
+}
+
+/* ---------- sticky notes ---------- */
+.btwNote {
+  position: absolute;
+  width: 92px;
+  min-height: 70px;
+  padding: 10px 8px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #3b3220;
+  background: #f4dd74;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+  opacity: 0.85;
+}
+/* A bit of tape on top. */
+.btwNote::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 34px;
+  height: 13px;
+  margin-left: -17px;
+  background: rgba(255, 255, 255, 0.35);
+  transform: rotate(-3deg);
+}
+.btwNote1 {
+  top: 26px;
+  left: 3%;
+  transform: rotate(-6deg);
+}
+.btwNote2 {
+  top: 150px;
+  left: 2%;
+  background: #f7a8c4;
+  transform: rotate(4deg);
+}
+.btwNote3 {
+  top: 38%;
+  right: 3%;
+  background: #9fdcf2;
+  transform: rotate(-3deg);
+}
+
+/* ---------- the clock ---------- */
+.btwClock {
+  position: absolute;
+  top: 28px;
+  right: 7%;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 4px solid #3a404c;
+  background: radial-gradient(circle, #f2f2ee 0 60%, #dcdcd6 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  opacity: 0.85;
+}
+/* Hour marks at 12, 3, 6 and 9. */
+.btwClock::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: conic-gradient(#555 0 2deg, transparent 2deg 88deg, #555 88deg 92deg, transparent 92deg 178deg, #555 178deg 182deg, transparent 182deg 268deg, #555 268deg 272deg, transparent 272deg 358deg, #555 358deg);
+  mask: radial-gradient(circle, transparent 78%, #000 80%);
+}
+.btwHand {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  border-radius: 2px;
+  background: #23262d;
+  transform-origin: 50% 100%;
+}
+.btwHour {
+  width: 3px;
+  height: 15px;
+  margin-left: -1.5px;
+  animation: btwTurn 120s linear infinite;
+}
+.btwMinute {
+  width: 2px;
+  height: 22px;
+  margin-left: -1px;
+  animation: btwTurn 10s linear infinite;
+}
+
+@keyframes btwTurn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- on the desk ---------- */
+.btwDesk {
+  position: absolute;
+  bottom: 10px;
+  font-size: 28px;
+}
+.btwCalendar {
+  left: 16px;
+}
+.btwCoffee {
+  right: 18px;
+  font-size: 32px;
+}
+.btwSteam {
+  position: absolute;
+  bottom: 100%;
+  left: 40%;
+  width: 6px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(to top, rgba(230, 230, 235, 0.35), transparent);
+  filter: blur(2px);
+  opacity: 0;
+  animation: btwSteam 3s ease-out infinite;
+}
+.btwSteam2 {
+  left: 25%;
+  animation-delay: 1s;
+}
+.btwSteam3 {
+  left: 55%;
+  animation-delay: 2s;
+}
+
+@keyframes btwSteam {
+  0% {
+    transform: translateY(6px) scaleX(1);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-22px) translateX(4px) scaleX(1.8);
+    opacity: 0;
+  }
+}
+
+/* The notes need the empty space beside the game column - narrower than this they would sit under it. */
+@media (max-width: 900px) {
+  .btwNote {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .btwClock {
+    top: 80px;
+    width: 46px;
+    height: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btwHand,
+  .btwSteam {
+    animation: none;
+  }
+}

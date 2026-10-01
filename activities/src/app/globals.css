@@ -4,6 +4,9 @@
   --card: #16181d;
   --card-border: #2a2d34;
   --muted: #9a9ba3;
+  /* Inputs, small buttons and dropdowns - a step up from the card they sit on. */
+  --surface: #1e2128;
+  --surface-hover: #2a2d34;
 
   --gold: #f5b942;
   --gold-glow: rgba(245, 185, 66, 0.18);
@@ -34,4 +37,26 @@ body {
 
 button {
   font-family: inherit;
+}
+
+/* Seasonal theme decorations (see src/themes) - fixed behind everything, never in the way of a click. Each theme's own CSS shows
+ * its [data-theme-decor] layer while that theme is on. */
+.themeDecor {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+[data-theme-decor] {
+  display: none;
+  position: absolute;
+  inset: 0;
+}
+
+/* A theme paints its background on <html>; the decorations sit between that and the body, so the body mustn't paint over them. */
+:root[data-theme] body {
+  background: transparent;
 }

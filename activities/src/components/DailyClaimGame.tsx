@@ -2,6 +2,7 @@
 
 import { callApi } from "@/lib/apiClient"
 import { useEffect, useState } from "react"
+import { DailyGiftPicker } from "./DailyGiftPicker"
 import contentStyles from "./GameContent.module.css"
 import styles from "./MoreOrLessModal.module.css"
 
@@ -51,6 +52,7 @@ export function DailyClaimGame({ accessToken }: { accessToken: string }) {
 
   return (
     <>
+      <DailyGiftPicker accessToken={accessToken} />
       <p className={contentStyles.status}>Streak: {status.dailyStreak} dager</p>
       {message && <div className={`${contentStyles.result} ${contentStyles.resultCorrect}`}>{message}</div>}
       <button className={styles.startBtn} type="button" disabled={busy || status.dailyClaimedToday} onClick={claim}>

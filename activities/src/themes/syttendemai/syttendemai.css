@@ -1,0 +1,141 @@
+/* 17. mai - a bright, clear parade day in red, white and blue: bunting, confetti, flags, pølse og is. A daytime theme (light.css). */
+
+:root[data-theme="syttendemai"] {
+  --red: #c8102e;
+  --red-glow: rgba(200, 16, 46, 0.26);
+  --blue: #1a3d8f;
+  --blue-glow: rgba(26, 61, 143, 0.26);
+  --purple: #c8102e;
+  --purple-glow: rgba(200, 16, 46, 0.22);
+  --teal: #1a3d8f;
+  --teal-glow: rgba(26, 61, 143, 0.22);
+
+  /* The card back is the flag itself. */
+  --theme-card-back: "";
+  --theme-card-back-bg: linear-gradient(to right, transparent 31.8%, #00205b 31.8% 40.9%, transparent 40.9%),
+    linear-gradient(to bottom, transparent 43.75%, #00205b 43.75% 56.25%, transparent 56.25%),
+    linear-gradient(to right, transparent 27.3%, #fff 27.3% 45.5%, transparent 45.5%),
+    linear-gradient(to bottom, transparent 37.5%, #fff 37.5% 62.5%, transparent 62.5%), #ba0c2f;
+  --theme-card-back-border: rgba(255, 255, 255, 0.85);
+
+  background: linear-gradient(to bottom, #5fb4f5 0%, #a9d8fb 40%, #e6f4fe 80%, #f4f9fd 100%);
+  background-attachment: fixed;
+}
+
+:root[data-theme="syttendemai"] [data-theme-decor="syttendemai"] {
+  display: block;
+}
+
+/* ---------- bunting ---------- */
+.smBunting {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+}
+.smLine {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: rgba(40, 50, 70, 0.55);
+}
+.smPennant {
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin-left: -8px;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 16px solid var(--pennant);
+  transform-origin: 50% 0;
+  transform: rotate(var(--tilt));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  animation: smFlutter 2.4s ease-in-out infinite;
+}
+
+@keyframes smFlutter {
+  0%,
+  100% {
+    transform: rotate(calc(var(--tilt) - 6deg));
+  }
+  50% {
+    transform: rotate(calc(var(--tilt) + 6deg));
+  }
+}
+
+/* ---------- flags on poles, waving ---------- */
+.smFlagPole {
+  position: absolute;
+  bottom: 0;
+  width: 3px;
+  height: 130px;
+  background: linear-gradient(to right, #d8d8d8, #8a8a8a);
+  border-radius: 2px;
+}
+.smFlagLeft {
+  left: 22px;
+}
+.smFlagRight {
+  right: 22px;
+}
+.smFlag {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  width: 56px;
+  height: 41px;
+  transform-origin: 0 50%;
+  animation: smWave 2s ease-in-out infinite;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+}
+/* The right-hand flag flies the other way, towards the middle. */
+.smFlagRight .smFlag {
+  left: auto;
+  right: 3px;
+  transform-origin: 100% 50%;
+  animation-delay: -0.7s;
+}
+
+@keyframes smWave {
+  0%,
+  100% {
+    transform: skewY(-4deg) scaleX(1);
+  }
+  50% {
+    transform: skewY(4deg) scaleX(0.9);
+  }
+}
+
+/* Sun on the left, the bunting already fills the top. */
+.smSun {
+  top: 70px;
+  left: 6%;
+  right: auto;
+}
+
+.smTreat {
+  position: absolute;
+  bottom: 8px;
+  font-size: 30px;
+}
+.smTreat1 {
+  left: 70px;
+}
+.smTreat2 {
+  right: 70px;
+}
+
+@media (max-width: 600px) {
+  .smBunting {
+    top: 50px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smPennant,
+  .smFlag {
+    animation: none;
+  }
+}

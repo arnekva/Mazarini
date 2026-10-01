@@ -113,6 +113,8 @@ export interface MazariniUser {
     lastFMUsername?: string
     dailySpinRewards?: number // Deprecated
     dailySpins?: number
+    /** roundId of the last admin-picked daily gift (MazariniStorage.dailyGift) this user claimed. Set by the Activities app. */
+    claimedGift?: string
     // shopItems?: any //TODO Cast this
     /** Cod weekly stats */
     codStats?: CodStats | CodBRStatsType
@@ -444,6 +446,8 @@ export interface MazariniStorage {
     }
     mastermind?: string[]
     luckyWheel?: ILuckyWheelReward[]
+    /** The admin-picked daily gift (other/dailyGift) - set from the Activities app's admin panel, claimed from its Daily claim page. */
+    dailyGift?: IDailyGift
     effects?: {
         positive?: {
             shuffleIgnoresDigits?: boolean
@@ -510,6 +514,27 @@ export interface ILuckyWheelReward {
     amount?: number
     quality?: LootboxQuality
     description?: string
+}
+
+/** One prize the admin offers in a daily gift round. The Activities app's lib/dailyGift.ts has the same shape and does the granting. */
+export interface IDailyGiftOption {
+    /** Unique within a round, e.g. "dond-elite", "chips" */
+    id: string
+    kind: 'dond' | 'box' | 'chest' | 'chips' | 'spin'
+    /** dond (basic = 10k, premium = 20k, elite = 50k), box and chest */
+    quality?: 'basic' | 'premium' | 'elite'
+    /** chips only */
+    amount?: number
+}
+
+/** A daily gift round: everyone in `recipients` may claim exactly one of `options`. Publishing again starts a new round. */
+export interface IDailyGift {
+    roundId: string
+    options: IDailyGiftOption[]
+    recipients: string[]
+    createdAt: number
+    /** userId -> what they picked this round */
+    claims?: { [userId: string]: { optionId: string; at: number } }
 }
 
 export enum LuckyWheelRewardType {

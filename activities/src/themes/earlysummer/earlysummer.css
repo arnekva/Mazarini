@@ -1,0 +1,121 @@
+/* Forsommer - a warm, golden early-summer day: big sun, a golden haze, butterflies and bees over lush grass, the first strawberries.
+   A daytime theme (light.css). */
+
+:root[data-theme="earlysummer"] {
+  --gold: #c26a00;
+  --gold-glow: rgba(255, 170, 40, 0.34);
+  --purple: #d1477a;
+  --purple-glow: rgba(209, 71, 122, 0.22);
+  --green: #2c8f2f;
+  --green-glow: rgba(44, 143, 47, 0.24);
+
+  --theme-card-back: "🍓";
+  --theme-card-back-bg: linear-gradient(160deg, #ffd36b, #f28c38);
+  --theme-card-back-border: rgba(255, 255, 255, 0.85);
+
+  background: linear-gradient(to bottom, #6fc0ff 0%, #b8e1ff 28%, #ffefc4 62%, #e6f1b0 84%, #a6d77e 100%);
+  background-attachment: fixed;
+}
+
+:root[data-theme="earlysummer"] [data-theme-decor="earlysummer"] {
+  display: block;
+}
+
+/* A bigger, warmer sun than spring's. */
+.esSun {
+  width: 96px;
+  height: 96px;
+  background: radial-gradient(circle at 40% 40%, #fffbe0, #ffd84d 45%, #ffad1f 100%);
+  box-shadow: 0 0 60px 24px rgba(255, 196, 60, 0.6), 0 0 180px 70px rgba(255, 210, 120, 0.4);
+}
+
+/* Warm golden light washing down from the sun. */
+.esHaze {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 85% 5%, rgba(255, 200, 90, 0.35) 0%, transparent 55%);
+}
+
+/* ---------- butterflies and a bee ---------- */
+.esButterfly {
+  position: absolute;
+  font-size: 24px;
+  animation: esFlutter 14s ease-in-out infinite;
+}
+.esButterfly1 {
+  left: 8%;
+  top: 42%;
+}
+.esButterfly2 {
+  right: 9%;
+  top: 58%;
+  font-size: 20px;
+  animation-delay: -6s;
+  animation-duration: 17s;
+}
+.esButterfly3 {
+  left: 12%;
+  bottom: 120px;
+  font-size: 18px;
+  animation-delay: -3s;
+  animation-duration: 9s;
+}
+
+@keyframes esFlutter {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-8deg) scaleX(1);
+  }
+  20% {
+    transform: translate(30px, -40px) rotate(8deg) scaleX(0.6);
+  }
+  40% {
+    transform: translate(-10px, -80px) rotate(-6deg) scaleX(1);
+  }
+  60% {
+    transform: translate(-40px, -30px) rotate(10deg) scaleX(0.6);
+  }
+  80% {
+    transform: translate(10px, 10px) rotate(-10deg) scaleX(1);
+  }
+}
+
+/* Two lush green hills overlapping along the bottom. */
+.esGrass {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 110px;
+  background: radial-gradient(ellipse 70% 90% at 20% 100%, #5fae45 0 60%, transparent 61%),
+    radial-gradient(ellipse 75% 75% at 85% 100%, #7cc85a 0 60%, transparent 61%);
+  opacity: 0.92;
+}
+
+.esBerry {
+  position: absolute;
+  bottom: 10px;
+  font-size: 26px;
+}
+.esBerry1 {
+  left: 14px;
+}
+.esBerry2 {
+  left: 46px;
+  font-size: 20px;
+  transform: rotate(20deg);
+}
+.esBerry3 {
+  right: 54px;
+  font-size: 22px;
+}
+.esBerry4 {
+  right: 14px;
+  font-size: 32px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esButterfly {
+    animation: none;
+  }
+}

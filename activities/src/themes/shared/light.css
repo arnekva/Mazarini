@@ -1,0 +1,86 @@
+/* The base every daytime theme (tone: "light" in themes.ts) builds on: dark text on light, slightly see-through cards, and accent
+   colours deep enough to read as text on white - the dark themes' bright yellow, for one, all but vanishes there. A light theme only
+   adds its sky (the <html> background), its own accents where it wants them, and its decorations. */
+
+:root[data-tone="light"] {
+  color-scheme: light;
+
+  --foreground: #1c2430;
+  --card: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(30, 50, 80, 0.16);
+  --muted: #5b6676;
+  --surface: rgba(255, 255, 255, 0.95);
+  --surface-hover: #e9eef5;
+  /* A game board panel (e.g. Mastermind's) - on a light sky, a frosted white rather than a tint of the text colour. */
+  --panel: rgba(255, 255, 255, 0.7);
+
+  --gold: #c27c00;
+  --gold-glow: rgba(240, 160, 20, 0.3);
+  --purple: #8f4fd6;
+  --purple-glow: rgba(143, 79, 214, 0.22);
+  --blue: #2f66d8;
+  --blue-glow: rgba(47, 102, 216, 0.22);
+  --green: #23944a;
+  --green-glow: rgba(35, 148, 74, 0.22);
+  --red: #d63939;
+  --red-glow: rgba(214, 57, 57, 0.22);
+  --teal: #0e8f9c;
+  --teal-glow: rgba(14, 143, 156, 0.22);
+}
+
+/* ---------- clouds, for any daytime sky ---------- */
+.themeCloud {
+  position: absolute;
+  left: 0;
+  width: 150px;
+  height: 40px;
+  border-radius: 40px;
+  background: var(--cloud, rgba(255, 255, 255, 0.85));
+  animation: themeCloudDrift var(--dur, 80s) linear var(--delay, 0s) infinite;
+}
+.themeCloud::before,
+.themeCloud::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: inherit;
+}
+.themeCloud::before {
+  width: 64px;
+  height: 54px;
+  top: -26px;
+  left: 22px;
+}
+.themeCloud::after {
+  width: 80px;
+  height: 66px;
+  top: -36px;
+  left: 60px;
+}
+
+@keyframes themeCloudDrift {
+  from {
+    left: -240px;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+/* A bright daytime sun with a soft halo. */
+.themeSun {
+  position: absolute;
+  top: 26px;
+  right: 7%;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #fffbe0, #ffe066 50%, #ffc53d 100%);
+  box-shadow: 0 0 50px 18px rgba(255, 214, 90, 0.55), 0 0 140px 50px rgba(255, 230, 150, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .themeCloud {
+    animation: none;
+  }
+}

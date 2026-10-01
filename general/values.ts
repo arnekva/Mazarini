@@ -253,15 +253,15 @@ export const GameValues: GameValuesType = {
         ],
         potSkip: { diceTarget: 200, roll: 69, potPenalty: 0 },
         addToPot: {
-            athStreakMultiplier: 2000,
+            athStreakMultiplier: 2500,
             streakMultiplier: 1000,
             biggestLossMultiplier: 20,
-            largeNumberLossMultiplier: 3,
+            largeNumberLossMultiplier: 4,
             minReward: 100,
         },
         jokes: {
             nineElevenRemove: 2977,
-            nineElevenChance: 0.75,
+            nineElevenChance: 0.85,
         },
         checkForReward: {
             sameDigitsMultiplier: 3,
@@ -281,12 +281,12 @@ export const GameValues: GameValuesType = {
         },
         getRollReward: {
             specialNumbers: [
-                1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2026, 2012, 1945, 2468, 1359, 6900,
-                2026, 4060, 1989, 170, 1001, 1914, 1918, 1939, 1945, 1969, 6040, 2469
+                1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2026, 2012, 1945, 2468, 6900, 2026,
+                4060, 1989, 170, 1001, 1914, 1918, 1939, 1945, 1969, 6040, 2469,
             ],
-            unSpecialNumbers: [2025, 2027, 68, 70, 1998, 1995],
-            multiplier: 1,
-            unSpecialNumberPenalty: -1,
+            unSpecialNumbers: [2025, 2027, 68, 70, 1998, 1995, 5718, 1436, 984, 4151],
+            multiplier: 3,
+            unSpecialNumberPenalty: -2,
         },
         tomasa: {
             baseChance: 0.001,
@@ -295,7 +295,7 @@ export const GameValues: GameValuesType = {
         potWin: {
             winOn: 69,
             minTarget: 10000,
-            noThanksThreshold: 10000,
+            noThanksThreshold: 12500,
             noThanksBonus: 2500,
         },
         autoCompleteDiceDefault: 10002,

@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.3.2'
+    public static readonly currentVersion = '36.3.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,21 +27,14 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '# Activity',
-                '* Multiplayer e mye kjappere - bordet oppdatere seg med ein gong någen gjør någe',
-                '* To så trykke samtidig overskrive ikkje kverandre lenger',
-                '* Outline vise nå øyer, fjorder og havner. Trykk på omrisset for å se det stort',
-                '* More or Less har fått ein tydeligere "Feil!"-skjerm',
-                '* Blackjack-meldingen i chatten e kortere: antall runder og total +/- per spiller',
-                '* Chipsene på forsiden hoppe ikkje ner lenger når de laste inn',
-                '# Terning',
-                '* Potten og spillene lagres med ein gong, så ingenting forsvinne om botten kræsje',
-                '* "Spill Blackjack"-knappen dra deg ikkje inn i blackjack fleire dager seinere',
-                '* Førstemann så sende "lmao" i #loot får ein liten reward',
-                '# Diverse',
-                '* Chips kan ikkje lenger bli overskrevet når botten og Activity endre de samtidig',
-                '* Fiksa NaN i More or Less-resultatene, og någen bugs i daily jobs',
-                '* tyvm te opus for de fine patch noteså som alle lese',
+                '* Å vinne potten gir nå +1 dpn. Denne forsvinner ikke dersom du sier "nei takk" til poten.',
+                '* Når du spiller Blackjack etter å ha vunnet potten (blackjack pot lobby) vil dine egne chips separares ut fra potten mens du gambler.',
+                '* Special numbers multiplier: 1 -> 3',
+                '* Un-Special numbers multiplier: -1 -> -2',
+                '* Blackjack: Double down er nå tilbake. Dealer peek er også lagt til nå.',
+                '* Blackjack: Lagt til en "recommended move" som kan hjelpe deg å ta bedre beslutninger i spillet.',
+                '* Mastermind har nå en bakgrunn i spillet så en lettere kan se fargene.',
+                '* Små forbedringer i Activity',
             ].join('\n')
         )
         container.addSeparator()

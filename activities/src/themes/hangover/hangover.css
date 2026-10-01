@@ -1,0 +1,160 @@
+/* Første nyttårsdag - everything a bit washed out, a throbbing head, and the mess from last night still on the floor. */
+
+:root[data-theme="hangover"] {
+  --background: #0d0f0d;
+  --foreground: #e6e8e1;
+  --card: #181a17;
+  --card-border: #2d312a;
+  --muted: #8d9288;
+
+  --gold: #c9b458;
+  --gold-glow: rgba(201, 180, 88, 0.16);
+  --purple: #8f88ad;
+  --purple-glow: rgba(143, 136, 173, 0.15);
+  --blue: #6e81a8;
+  --blue-glow: rgba(110, 129, 168, 0.15);
+  --green: #8fae5a;
+  --green-glow: rgba(143, 174, 90, 0.16);
+  --red: #b8584f;
+  --red-glow: rgba(184, 88, 79, 0.16);
+  --teal: #719c95;
+  --teal-glow: rgba(113, 156, 149, 0.15);
+
+  --theme-card-back: "💤";
+  --theme-card-back-bg: linear-gradient(135deg, #2a2d27, #121411);
+  --theme-card-back-border: rgba(201, 180, 88, 0.3);
+
+  background: radial-gradient(ellipse at 50% 40%, #151814 0%, var(--background) 70%);
+  background-attachment: fixed;
+}
+
+:root[data-theme="hangover"] [data-theme-decor="hangover"] {
+  display: block;
+}
+
+/* The page titles can't quite stand still today. */
+:root[data-theme="hangover"] h1 {
+  animation: hngWobble 6s ease-in-out infinite;
+}
+
+@keyframes hngWobble {
+  0%,
+  100% {
+    transform: rotate(0deg) translateX(0);
+  }
+  30% {
+    transform: rotate(-1.2deg) translateX(-2px);
+  }
+  65% {
+    transform: rotate(1deg) translateX(2px);
+  }
+}
+
+/* A dark vignette that pulses slowly, like a headache. */
+.hngThrob {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+  animation: hngThrob 2.6s ease-in-out infinite;
+}
+
+@keyframes hngThrob {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  15% {
+    opacity: 1;
+  }
+  35% {
+    opacity: 0.65;
+  }
+}
+
+/* Still asleep, top right. */
+.hngFace {
+  position: absolute;
+  top: 34px;
+  right: 7%;
+  font-size: 34px;
+  opacity: 0.7;
+}
+.hngZ {
+  position: absolute;
+  top: 34px;
+  right: calc(7% + 8px);
+  color: var(--muted);
+  font-weight: 700;
+  opacity: 0;
+  animation: hngZ 4.5s ease-out infinite;
+}
+.hngZ1 {
+  font-size: 13px;
+}
+.hngZ2 {
+  font-size: 17px;
+  animation-delay: 1.5s;
+}
+.hngZ3 {
+  font-size: 22px;
+  animation-delay: 3s;
+}
+
+@keyframes hngZ {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-34px, -30px);
+    opacity: 0;
+  }
+}
+
+.hngConfetti {
+  position: absolute;
+  width: 7px;
+  height: 4px;
+  border-radius: 1px;
+  opacity: 0.55;
+}
+
+.hngWater,
+.hngPill,
+.hngGlasses {
+  position: absolute;
+  bottom: 10px;
+  opacity: 0.85;
+}
+.hngWater {
+  right: 16px;
+  font-size: 30px;
+}
+.hngPill {
+  right: 54px;
+  font-size: 18px;
+  transform: rotate(-30deg);
+}
+.hngGlasses {
+  left: 14px;
+  font-size: 26px;
+  transform: rotate(-12deg);
+}
+
+@media (max-width: 600px) {
+  .hngFace,
+  .hngZ {
+    top: 84px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="hangover"] h1,
+  .hngThrob,
+  .hngZ {
+    animation: none;
+  }
+}

@@ -1,0 +1,178 @@
+/* Sommerferie - a hot beach day: blazing sun with turning rays, gulls, turquoise sea and sand. A daytime theme (light.css). */
+
+:root[data-theme="summer"] {
+  --gold: #c06a00;
+  --gold-glow: rgba(255, 170, 30, 0.36);
+  --purple: #e2553f;
+  --purple-glow: rgba(226, 85, 63, 0.24);
+  --blue: #0f7fd6;
+  --blue-glow: rgba(15, 127, 214, 0.24);
+  --teal: #00939e;
+  --teal-glow: rgba(0, 147, 158, 0.26);
+
+  --theme-card-back: "⛱️";
+  --theme-card-back-bg: linear-gradient(to bottom, #3fc4f5 0%, #1a9ad8 60%, #f2d79a 60%);
+  --theme-card-back-border: rgba(255, 255, 255, 0.85);
+
+  background: radial-gradient(ellipse at 88% 0%, rgba(255, 236, 150, 0.7) 0%, transparent 40%),
+    linear-gradient(to bottom, #1fa8f0 0%, #62c6f7 35%, #a8e2fb 70%, #d4f1fc 100%);
+  background-attachment: fixed;
+}
+
+:root[data-theme="summer"] [data-theme-decor="summer"] {
+  display: block;
+}
+
+/* ---------- the sun ---------- */
+.sumSun {
+  position: absolute;
+  top: 24px;
+  right: 7%;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #fffbe0, #ffe14d 50%, #ffb31f 100%);
+  box-shadow: 0 0 60px 22px rgba(255, 210, 70, 0.7), 0 0 160px 60px rgba(255, 235, 150, 0.45);
+}
+.sumRays {
+  position: absolute;
+  inset: -44px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255, 220, 90, 0.75) 0deg 8deg, transparent 8deg 30deg);
+  mask: radial-gradient(circle, transparent 42%, #000 46%, transparent 72%);
+  animation: sumSpin 40s linear infinite;
+  z-index: -1;
+}
+
+@keyframes sumSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- gulls gliding ---------- */
+.sumGull {
+  position: absolute;
+  width: 26px;
+  height: 11px;
+  color: rgba(40, 60, 80, 0.6);
+  animation: sumGlide 30s linear infinite;
+}
+.sumGull1 {
+  top: 130px;
+}
+.sumGull2 {
+  top: 170px;
+  width: 18px;
+  animation-delay: -12s;
+  animation-duration: 38s;
+}
+
+@keyframes sumGlide {
+  from {
+    left: -40px;
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-14px);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+  75% {
+    transform: translateY(-10px);
+  }
+  to {
+    left: 100%;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- sea and beach ---------- */
+.sumSea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 40px;
+  height: 70px;
+  overflow: hidden;
+}
+.sumWave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  animation: sumRoll 12s linear infinite;
+}
+.sumWaveBack {
+  color: #1aa3c9;
+  bottom: 8px;
+  animation-duration: 18s;
+  animation-direction: reverse;
+}
+.sumWaveFront {
+  color: #3fd0e0;
+  height: 70%;
+}
+
+/* The wave shape repeats every half of its width, so sliding it by half loops seamlessly. */
+@keyframes sumRoll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.sumSand {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  background: linear-gradient(to bottom, #f6dfa5, #e8c47f);
+}
+
+.sumBeach {
+  position: absolute;
+  bottom: 6px;
+}
+.sumUmbrella {
+  left: 14px;
+  bottom: 14px;
+  font-size: 40px;
+}
+.sumMelon {
+  left: 62px;
+  font-size: 20px;
+}
+.sumShades {
+  right: 56px;
+  font-size: 20px;
+}
+.sumCrab {
+  right: 16px;
+  font-size: 22px;
+  animation: sumScuttle 6s ease-in-out infinite;
+}
+
+@keyframes sumScuttle {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  45% {
+    transform: translateX(-26px);
+  }
+  55% {
+    transform: translateX(-26px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sumRays,
+  .sumGull,
+  .sumWave,
+  .sumCrab {
+    animation: none;
+  }
+}

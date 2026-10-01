@@ -1,0 +1,263 @@
+/* Spooktober - pumpkin orange, witchy purple, slime green on a midnight background. Everything is scoped to the theme being on. */
+
+:root[data-theme="spooktober"] {
+  --background: #0c0811;
+  --foreground: #f4ece4;
+  --card: #1a1220;
+  --card-border: #3a2642;
+  --muted: #a596ab;
+
+  --gold: #ff8c1a;
+  --gold-glow: rgba(255, 140, 26, 0.24);
+  --purple: #b26cff;
+  --purple-glow: rgba(178, 108, 255, 0.22);
+  --blue: #7b6cf6;
+  --blue-glow: rgba(123, 108, 246, 0.2);
+  --green: #7ddc3a;
+  --green-glow: rgba(125, 220, 58, 0.2);
+  --red: #e5383b;
+  --red-glow: rgba(229, 56, 59, 0.22);
+  --teal: #6ee7d0;
+  --teal-glow: rgba(110, 231, 208, 0.2);
+
+  --theme-card-back: "🎃";
+  --theme-card-back-bg: linear-gradient(135deg, #3b1d4f, #160a1f);
+  --theme-card-back-border: rgba(255, 140, 26, 0.45);
+
+  /* For the theme's own pieces below. */
+  --spk-moon: #f6e7b8;
+  --spk-web: rgba(220, 205, 235, 0.22);
+}
+
+:root[data-theme="spooktober"] {
+  background: radial-gradient(ellipse at 85% -5%, rgba(246, 231, 184, 0.1) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 120%, rgba(120, 50, 170, 0.28) 0%, transparent 60%), var(--background);
+  background-attachment: fixed;
+}
+
+:root[data-theme="spooktober"] ::selection {
+  background: var(--gold);
+  color: var(--background);
+}
+
+:root[data-theme="spooktober"] [data-theme-decor="spooktober"] {
+  display: block;
+}
+
+/* ---------- moon ---------- */
+.spkMoon {
+  position: absolute;
+  top: 28px;
+  right: 7%;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff8dc 0%, var(--spk-moon) 45%, #d9c48a 100%);
+  box-shadow: 0 0 40px 8px rgba(246, 231, 184, 0.25), 0 0 120px 30px rgba(246, 231, 184, 0.08);
+  opacity: 0.85;
+}
+/* Craters */
+.spkMoon::before,
+.spkMoon::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(150, 125, 70, 0.25);
+}
+.spkMoon::before {
+  width: 16px;
+  height: 16px;
+  top: 18px;
+  left: 38px;
+}
+.spkMoon::after {
+  width: 10px;
+  height: 10px;
+  top: 42px;
+  left: 20px;
+}
+
+/* ---------- cobweb ---------- */
+.spkWeb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 170px;
+  height: 170px;
+  color: var(--spk-web);
+}
+.spkWeb circle {
+  color: rgba(20, 10, 25, 0.9);
+  animation: spkSpider 6s ease-in-out infinite;
+  transform-box: fill-box;
+}
+
+@keyframes spkSpider {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* ---------- bats: cross the screen now and then, most of each cycle spent off-screen ---------- */
+.spkBat {
+  position: absolute;
+  left: 0;
+  font-size: 26px;
+  opacity: 0;
+  filter: brightness(0.55) drop-shadow(0 0 6px rgba(178, 108, 255, 0.5));
+  animation: spkBatFly 22s linear infinite;
+}
+.spkBat1 {
+  top: 14%;
+}
+.spkBat2 {
+  top: 32%;
+  font-size: 18px;
+  animation-delay: 7s;
+  animation-duration: 26s;
+}
+.spkBat3 {
+  top: 8%;
+  font-size: 22px;
+  animation-delay: 15s;
+  animation-duration: 30s;
+}
+
+@keyframes spkBatFly {
+  0% {
+    transform: translate(-60px, 0) scaleY(1);
+    opacity: 0;
+  }
+  3% {
+    opacity: 0.9;
+  }
+  6% {
+    transform: translate(18vw, -24px) scaleY(0.7);
+  }
+  10% {
+    transform: translate(36vw, 10px) scaleY(1);
+  }
+  14% {
+    transform: translate(54vw, -18px) scaleY(0.7);
+  }
+  18% {
+    transform: translate(72vw, 6px) scaleY(1);
+  }
+  22% {
+    transform: translate(92vw, -20px) scaleY(0.7);
+    opacity: 0.9;
+  }
+  24%,
+  100% {
+    transform: translate(105vw, -10px);
+    opacity: 0;
+  }
+}
+
+/* ---------- ghosts: drift up and down at the edges, faint ---------- */
+.spkGhost {
+  position: absolute;
+  font-size: 34px;
+  opacity: 0.16;
+  animation: spkGhostFloat 9s ease-in-out infinite;
+}
+.spkGhost1 {
+  left: 3%;
+  top: 46%;
+}
+.spkGhost2 {
+  right: 4%;
+  top: 62%;
+  font-size: 28px;
+  animation-delay: -4s;
+  animation-duration: 11s;
+}
+
+@keyframes spkGhostFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-4deg);
+  }
+  50% {
+    transform: translate(8px, -22px) rotate(4deg);
+  }
+}
+
+/* ---------- fog and pumpkins along the bottom ---------- */
+.spkFog {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: 0;
+  height: 140px;
+  background: radial-gradient(ellipse at 20% 100%, rgba(170, 140, 200, 0.16) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 100%, rgba(170, 140, 200, 0.12) 0%, transparent 55%);
+  animation: spkFogDrift 18s ease-in-out infinite alternate;
+}
+
+@keyframes spkFogDrift {
+  to {
+    transform: translateX(8%);
+  }
+}
+
+.spkPumpkin {
+  position: absolute;
+  bottom: 10px;
+  font-size: 30px;
+  filter: drop-shadow(0 0 10px rgba(255, 140, 26, 0.6));
+  animation: spkFlicker 3.2s ease-in-out infinite;
+}
+.spkPumpkinLeft {
+  left: 14px;
+}
+.spkPumpkinRight {
+  right: 14px;
+  font-size: 24px;
+  animation-delay: -1.3s;
+}
+
+@keyframes spkFlicker {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px rgba(255, 140, 26, 0.6));
+  }
+  40% {
+    filter: drop-shadow(0 0 4px rgba(255, 140, 26, 0.3));
+  }
+  45% {
+    filter: drop-shadow(0 0 14px rgba(255, 160, 40, 0.75));
+  }
+}
+
+/* Small screens: the game fills the width, so keep the decorations out of its way. */
+@media (max-width: 600px) {
+  .spkMoon {
+    width: 48px;
+    height: 48px;
+    top: 80px;
+    opacity: 0.6;
+  }
+  .spkWeb {
+    width: 110px;
+    height: 110px;
+    top: 60px;
+  }
+  .spkGhost {
+    opacity: 0.1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme-decor="spooktober"] *,
+  .spkWeb circle {
+    animation: none !important;
+  }
+  .spkBat {
+    display: none;
+  }
+}

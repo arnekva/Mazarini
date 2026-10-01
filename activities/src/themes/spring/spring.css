@@ -1,0 +1,80 @@
+/* Vår - a fresh spring morning: pale blue sky, sun, blossom petals drifting down and flowers coming up. A daytime theme (light.css). */
+
+:root[data-theme="spring"] {
+  --purple: #c8478a;
+  --purple-glow: rgba(200, 71, 138, 0.22);
+  --green: #2f9a3d;
+  --green-glow: rgba(47, 154, 61, 0.24);
+
+  --theme-card-back: "🌷";
+  --theme-card-back-bg: linear-gradient(135deg, #7cc77f, #3f8f4a);
+  --theme-card-back-border: rgba(255, 255, 255, 0.8);
+
+  background: linear-gradient(to bottom, #9fd3ff 0%, #cbe8ff 35%, #eef8ff 62%, #e4f5d8 85%, #c4e6a8 100%);
+  background-attachment: fixed;
+}
+
+:root[data-theme="spring"] [data-theme-decor="spring"] {
+  display: block;
+}
+
+/* Morning sun, low on the left. */
+.sprSun {
+  left: 6%;
+  right: auto;
+}
+
+/* Rolling green hills along the bottom. */
+.sprMeadow {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: -40px;
+  height: 110px;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: linear-gradient(to bottom, #9fd87f, #6dbb55);
+  opacity: 0.85;
+}
+
+/* Flowers along the bottom, swaying a little in the breeze. */
+.sprFlower {
+  position: absolute;
+  bottom: 8px;
+  transform-origin: 50% 100%;
+  animation: sprSway 4s ease-in-out infinite;
+}
+.sprFlower1 {
+  left: 12px;
+  font-size: 32px;
+}
+.sprFlower2 {
+  left: 52px;
+  font-size: 24px;
+  animation-delay: -1.2s;
+}
+.sprFlower3 {
+  right: 54px;
+  font-size: 22px;
+  animation-delay: -2.1s;
+}
+.sprFlower4 {
+  right: 14px;
+  font-size: 30px;
+  animation-delay: -0.6s;
+}
+
+@keyframes sprSway {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sprFlower {
+    animation: none;
+  }
+}

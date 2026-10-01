@@ -1,0 +1,54 @@
+/* Høst - amber, rust and olive on dark walnut, with leaves drifting down. */
+
+:root[data-theme="autumn"] {
+  --background: #110c08;
+  --foreground: #f5ede3;
+  --card: #1e1610;
+  --card-border: #3d2c1d;
+  --muted: #a8998a;
+
+  --gold: #e9a23b;
+  --gold-glow: rgba(233, 162, 59, 0.22);
+  --purple: #d0647c;
+  --purple-glow: rgba(208, 100, 124, 0.2);
+  --blue: #8193d6;
+  --blue-glow: rgba(129, 147, 214, 0.18);
+  --green: #9cbb4f;
+  --green-glow: rgba(156, 187, 79, 0.2);
+  --red: #d9573a;
+  --red-glow: rgba(217, 87, 58, 0.22);
+  --teal: #74b5a8;
+  --teal-glow: rgba(116, 181, 168, 0.18);
+
+  --theme-card-back: "🍁";
+  --theme-card-back-bg: linear-gradient(135deg, #6b2e14, #2a140a);
+  --theme-card-back-border: rgba(233, 162, 59, 0.45);
+
+  background: radial-gradient(ellipse at 80% -10%, rgba(233, 140, 50, 0.16) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 120%, rgba(160, 70, 30, 0.22) 0%, transparent 60%), var(--background);
+  background-attachment: fixed;
+}
+
+:root[data-theme="autumn"] [data-theme-decor="autumn"] {
+  display: block;
+}
+
+/* A low, hazy autumn sun. */
+.autSun {
+  position: absolute;
+  top: -60px;
+  right: 6%;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 190, 110, 0.22) 0%, rgba(233, 130, 50, 0.08) 45%, transparent 70%);
+}
+
+.autHaze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 120px;
+  background: linear-gradient(to top, rgba(120, 55, 20, 0.22), transparent);
+}

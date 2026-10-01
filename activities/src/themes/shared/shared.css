@@ -1,0 +1,49 @@
+/* Pieces more than one theme uses. */
+
+/* ---------- Falling (see Falling.tsx) ---------- */
+.themeFall {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  font-size: var(--size);
+  line-height: 1;
+  opacity: var(--o);
+  animation: themeFall var(--dur) linear var(--delay) infinite;
+  will-change: transform;
+}
+
+/* A plain snowflake: a soft white dot the size of the particle. */
+.themeFlake {
+  width: calc(var(--size) / 3);
+  height: calc(var(--size) / 3);
+  border-radius: 50%;
+  background: var(--color, #fff);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
+}
+
+/* A strip of paper confetti, tumbling as it falls (set a spin on the Falling). */
+.themeConfetti {
+  width: calc(var(--size) / 2.2);
+  height: calc(var(--size) / 4.5);
+  border-radius: 1px;
+  background: var(--color, #fff);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes themeFall {
+  from {
+    transform: translate(0, -60px) rotate(0deg);
+  }
+  50% {
+    transform: translate(var(--drift), 50vh) rotate(calc(var(--spin) / 2));
+  }
+  to {
+    transform: translate(0, calc(100vh + 60px)) rotate(var(--spin));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .themeFall {
+    display: none;
+  }
+}

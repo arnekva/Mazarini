@@ -1,3 +1,15 @@
+/* A lighter panel behind the whole board - on the page's near-black background the black pegs and the black colour all but disappeared. */
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+  background: var(--panel, color-mix(in srgb, var(--foreground) 13%, transparent));
+  backdrop-filter: blur(6px);
+}
+
 .colorRow {
   display: flex;
   gap: 8px;
@@ -9,7 +21,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 2px solid var(--card-border);
+  border: 2px solid color-mix(in srgb, var(--foreground) 40%, transparent);
   cursor: pointer;
   padding: 0;
 }
@@ -29,7 +41,7 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 2px dashed var(--card-border);
+  border: 2px dashed color-mix(in srgb, var(--foreground) 35%, transparent);
 }
 
 .actionsRow {
@@ -39,7 +51,7 @@
 }
 
 .smallBtn {
-  background: #1e2128;
+  background: var(--surface);
   border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 8px 14px;
@@ -75,16 +87,17 @@
 }
 
 .peg {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
 }
 
 .pegBlack {
   background: #111;
-  border: 1px solid #555;
+  border: 2px solid color-mix(in srgb, var(--foreground) 55%, transparent);
 }
 
 .pegWhite {
   background: #eee;
+  border: 2px solid rgba(0, 0, 0, 0.35);
 }

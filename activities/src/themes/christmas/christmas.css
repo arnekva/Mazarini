@@ -1,0 +1,121 @@
+/* Jul - red, green and gold on dark pine, with fairy lights and snow. */
+
+:root[data-theme="christmas"] {
+  --background: #06110c;
+  --foreground: #f6f3ec;
+  --card: #10201a;
+  --card-border: #234030;
+  --muted: #9fb0a5;
+
+  --gold: #f2c14e;
+  --gold-glow: rgba(242, 193, 78, 0.24);
+  --purple: #e2557a;
+  --purple-glow: rgba(226, 85, 122, 0.22);
+  --blue: #6c8cf5;
+  --blue-glow: rgba(108, 140, 245, 0.18);
+  --green: #3fc46d;
+  --green-glow: rgba(63, 196, 109, 0.22);
+  --red: #e23b3b;
+  --red-glow: rgba(226, 59, 59, 0.24);
+  --teal: #7fd3e6;
+  --teal-glow: rgba(127, 211, 230, 0.18);
+
+  --theme-card-back: "🎄";
+  --theme-card-back-bg: linear-gradient(135deg, #8e1b1b, #3d0a0a);
+  --theme-card-back-border: rgba(242, 193, 78, 0.55);
+
+  background: radial-gradient(ellipse at 50% -10%, rgba(242, 193, 78, 0.1) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 120%, rgba(40, 120, 70, 0.25) 0%, transparent 60%), var(--background);
+  background-attachment: fixed;
+}
+
+:root[data-theme="christmas"] [data-theme-decor="christmas"] {
+  display: block;
+}
+
+/* ---------- fairy lights ---------- */
+.xmasLights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+}
+.xmasWire {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: rgba(150, 175, 155, 0.45);
+}
+.xmasBulb {
+  position: absolute;
+  width: 9px;
+  height: 13px;
+  margin-left: -4.5px;
+  border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+  background: var(--bulb);
+  box-shadow: 0 0 10px 2px var(--bulb);
+  animation: xmasTwinkle 1.8s ease-in-out infinite;
+}
+/* The little socket on top. */
+.xmasBulb::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 2px;
+  width: 5px;
+  height: 4px;
+  border-radius: 1px;
+  background: #2a3a2e;
+}
+
+@keyframes xmasTwinkle {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 12px 3px var(--bulb);
+  }
+  50% {
+    opacity: 0.45;
+    box-shadow: 0 0 3px 0 var(--bulb);
+  }
+}
+
+/* ---------- snow on the ground, tree and present ---------- */
+.xmasGround {
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  bottom: -30px;
+  height: 70px;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: linear-gradient(to bottom, rgba(235, 245, 255, 0.16), rgba(235, 245, 255, 0.06));
+}
+
+.xmasTree,
+.xmasGift {
+  position: absolute;
+  bottom: 8px;
+  filter: drop-shadow(0 0 10px rgba(242, 193, 78, 0.35));
+}
+.xmasTree {
+  left: 12px;
+  font-size: 38px;
+}
+.xmasGift {
+  right: 14px;
+  font-size: 26px;
+}
+
+@media (max-width: 600px) {
+  .xmasLights {
+    top: 50px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xmasBulb {
+    animation: none;
+  }
+}

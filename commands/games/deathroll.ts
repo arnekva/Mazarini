@@ -60,6 +60,7 @@ export class Deathroll extends AbstractCommands {
      * pot-win button flow a real /terning win would, without needing an actual winning roll. */
     public async simulatePotWin(userId: string, amount: number) {
         const user = await this.client.database.getUser(userId)
+        Deathroll.grantRedeal(user)
         this.client.bank.giveMoney(user, amount)
         await this.sendBlackjackButton(userId, amount)
     }
@@ -455,6 +456,9 @@ export class Deathroll extends AbstractCommands {
             dbUser.effects.positive.doublePotWins--
         }
         const potentialReward = (this.rewardPot + addToPot) * potMultiplier
+        // Granted before giveMoney so its updateUser saves it too. "Nei takk" only takes the chips back - the redeal is kept.
+        const getsRedeal = this.rewardPot + addToPot > 0
+        if (getsRedeal) Deathroll.grantRedeal(dbUser)
         const rewarded = this.client.bank.giveMoney(dbUser, potentialReward)
         this.rewardPot = Math.max(this.rewardPot + addToPot - rewarded, 0)
         // Nothing won (an empty pot) means nothing to say no thanks to - the button used to be offered anyway, and handed the pot its bonus for free.
@@ -464,8 +468,16 @@ export class Deathroll extends AbstractCommands {
         return (
             ` Nice\nDu vinner potten på ${initialPot + addToPot} ${addToPot > 0 ? `(${initialPot} + ${addToPot}) ` : ''}chips!` +
             `${potMultiplier > 1 ? `\n(men du har jo en x${potMultiplier} multiplier, så da får du ${potentialReward} chips!)` : ''}` +
-            `${jailed ? `\n(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''}`
+            `${jailed ? `\n(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''}` +
+            `${getsRedeal ? `\n+1 "Deal på ny" i blackjack` : ''}`
         )
+    }
+
+    /** Every pot win comes with one blackjack "Deal på ny". Only sets it on the user - the caller saves it. */
+    private static grantRedeal(user: MazariniUser) {
+        user.effects = user.effects ?? {}
+        user.effects.positive = user.effects.positive ?? {}
+        user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 1
     }
 
     private saveRewardPot() {

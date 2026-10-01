@@ -4,11 +4,13 @@ import {
   createBlackjackLobby,
   postBlackjackChat,
   dealBlackjackRound,
+  doubleBlackjack,
   forceBadDealerDraw,
   getBlackjackLobbyStatus,
   hitBlackjack,
   joinBlackjackLobby,
   leaveBlackjackLobby,
+  playOnWithOwnChips,
   requestBlackjackRedeal,
   spectateBlackjackLobby,
   splitBlackjack,
@@ -63,10 +65,12 @@ export async function POST(request: Request) {
     if (action === "deal") return await dealBlackjackRound(instanceId, lobbyId, user)
     if (action === "hit") return await hitBlackjack(instanceId, lobbyId, user)
     if (action === "stand") return await standBlackjack(instanceId, lobbyId, user)
+    if (action === "double") return await doubleBlackjack(instanceId, lobbyId, user)
     if (action === "split") return await splitBlackjack(instanceId, lobbyId, user)
     if (action === "requestRedeal") return await requestBlackjackRedeal(instanceId, lobbyId, user)
     if (action === "voteRedeal") return await voteBlackjackRedeal(instanceId, lobbyId, user, !!approve)
     if (action === "setBet") return await adjustBlackjackBet(instanceId, lobbyId, user, buyIn, !!allIn)
+    if (action === "ownChips") return await playOnWithOwnChips(instanceId, lobbyId, user)
     if (action === "voteBet") return await voteBlackjackBet(instanceId, lobbyId, user, !!approve)
     // Not admin-gated here on purpose - forceBadDealerDraw itself silently no-ops for anyone whose
     // id doesn't match, and still returns the normal table view either way, so this endpoint gives

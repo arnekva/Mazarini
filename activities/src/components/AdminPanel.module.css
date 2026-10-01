@@ -1,0 +1,239 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 16px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--card-border));
+}
+
+.panelHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.muted {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupTitle {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  min-width: 76px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.pillOn {
+  background: color-mix(in srgb, var(--gold) 22%, var(--surface));
+  border-color: var(--gold);
+  color: var(--foreground);
+}
+.pillOn::before {
+  content: "✓ ";
+  color: var(--gold);
+}
+
+.input,
+.textarea {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+}
+
+.input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.textarea {
+  width: 100%;
+  resize: vertical;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 13px;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--gold) 8%, var(--surface));
+}
+
+.previewList {
+  margin: 0;
+  padding-left: 4px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  flex: 1;
+  border: none;
+  background: linear-gradient(135deg, var(--gold), var(--purple));
+  color: #111;
+}
+
+.secondaryBtn {
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: inherit;
+}
+
+.primaryBtn:disabled,
+.secondaryBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ok,
+.error {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ok {
+  color: var(--green);
+}
+.error {
+  color: var(--red);
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
+}
+
+.claimList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.claimList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.claimList li.claimed {
+  color: var(--foreground);
+}
+
+/* ---------- the picker on the Daily claim page ---------- */
+.giftBox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 16%, var(--card)), var(--card) 70%);
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--card-border));
+  box-shadow: 0 0 22px var(--gold-glow);
+}
+
+.giftTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.giftGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.giftChoice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.giftChoice:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+  box-shadow: 0 0 14px var(--gold-glow);
+}
+
+.giftChoice:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.giftIcon {
+  font-size: 28px;
+}

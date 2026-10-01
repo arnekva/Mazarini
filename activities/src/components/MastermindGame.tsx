@@ -116,58 +116,60 @@ export function MastermindGame({ accessToken }: { accessToken: string }) {
         <div className={`${contentStyles.result} ${message.startsWith("Løst") ? contentStyles.resultCorrect : contentStyles.resultWrong}`}>{message}</div>
       )}
 
-      {status.guesses.length > 0 && (
-        <div className={styles.history}>
-          {status.guesses.map((g, i) => (
-            <div key={i} className={styles.historyRow}>
-              {g.guess.map((c, j) => (
-                <span key={j} className={styles.colorSwatch} style={{ background: colorHex[c], width: 16, height: 16, cursor: "default" }} />
-              ))}
-              <div className={styles.historyPegs}>
-                {Array.from({ length: g.black }).map((_, k) => (
-                  <span key={`b${k}`} className={`${styles.peg} ${styles.pegBlack}`} />
+      <div className={styles.board}>
+        {status.guesses.length > 0 && (
+          <div className={styles.history}>
+            {status.guesses.map((g, i) => (
+              <div key={i} className={styles.historyRow}>
+                {g.guess.map((c, j) => (
+                  <span key={j} className={styles.colorSwatch} style={{ background: colorHex[c], width: 16, height: 16, cursor: "default" }} />
                 ))}
-                {Array.from({ length: g.white }).map((_, k) => (
-                  <span key={`w${k}`} className={`${styles.peg} ${styles.pegWhite}`} />
-                ))}
+                <div className={styles.historyPegs}>
+                  {Array.from({ length: g.black }).map((_, k) => (
+                    <span key={`b${k}`} className={`${styles.peg} ${styles.pegBlack}`} />
+                  ))}
+                  {Array.from({ length: g.white }).map((_, k) => (
+                    <span key={`w${k}`} className={`${styles.peg} ${styles.pegWhite}`} />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!done && (
-        <>
-          <div className={styles.currentGuess}>
-            {Array.from({ length: status.codeLength }).map((_, i) =>
-              current[i] ? <span key={i} className={styles.colorSwatch} style={{ background: colorHex[current[i]] }} /> : <span key={i} className={styles.slot} />
-            )}
-          </div>
-
-          <div className={styles.colorRow}>
-            {status.colors.map((color) => (
-              <button
-                key={color}
-                className={styles.colorSwatch}
-                style={{ background: colorHex[color] }}
-                disabled={busy || current.length >= status.codeLength}
-                onClick={() => addColor(color)}
-                type="button"
-                aria-label={color}
-              />
             ))}
           </div>
+        )}
 
-          <div className={styles.actionsRow}>
-            <button className={styles.smallBtn} type="button" disabled={busy || current.length === 0} onClick={reset}>
-              Nullstill
-            </button>
-            <button className={styles.smallBtn} type="button" disabled={busy || current.length !== status.codeLength} onClick={submit}>
-              Gjett
-            </button>
-          </div>
-        </>
-      )}
+        {!done && (
+          <>
+            <div className={styles.currentGuess}>
+              {Array.from({ length: status.codeLength }).map((_, i) =>
+                current[i] ? <span key={i} className={styles.colorSwatch} style={{ background: colorHex[current[i]] }} /> : <span key={i} className={styles.slot} />
+              )}
+            </div>
+
+            <div className={styles.colorRow}>
+              {status.colors.map((color) => (
+                <button
+                  key={color}
+                  className={styles.colorSwatch}
+                  style={{ background: colorHex[color] }}
+                  disabled={busy || current.length >= status.codeLength}
+                  onClick={() => addColor(color)}
+                  type="button"
+                  aria-label={color}
+                />
+              ))}
+            </div>
+
+            <div className={styles.actionsRow}>
+              <button className={styles.smallBtn} type="button" disabled={busy || current.length === 0} onClick={reset}>
+                Nullstill
+              </button>
+              <button className={styles.smallBtn} type="button" disabled={busy || current.length !== status.codeLength} onClick={submit}>
+                Gjett
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </>
   )
 }

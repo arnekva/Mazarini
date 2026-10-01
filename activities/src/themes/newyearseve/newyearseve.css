@@ -1,0 +1,94 @@
+/* Nyttårsaften - champagne gold on a midnight sky, with fireworks. */
+
+:root[data-theme="newyearseve"] {
+  --background: #05060f;
+  --foreground: #f7f4ea;
+  --card: #10121f;
+  --card-border: #272b47;
+  --muted: #9da1b8;
+
+  --gold: #f3cf6b;
+  --gold-glow: rgba(243, 207, 107, 0.26);
+  --purple: #a78bfa;
+  --purple-glow: rgba(167, 139, 250, 0.22);
+  --blue: #60a5fa;
+  --blue-glow: rgba(96, 165, 250, 0.2);
+  --green: #4ade80;
+  --green-glow: rgba(74, 222, 128, 0.2);
+  --red: #fb7185;
+  --red-glow: rgba(251, 113, 133, 0.22);
+  --teal: #5eead4;
+  --teal-glow: rgba(94, 234, 212, 0.2);
+
+  --theme-card-back: "🎆";
+  --theme-card-back-bg: linear-gradient(135deg, #1b1f45, #07081a);
+  --theme-card-back-border: rgba(243, 207, 107, 0.55);
+
+  background: radial-gradient(ellipse at 50% -10%, rgba(96, 110, 250, 0.16) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 120%, rgba(243, 207, 107, 0.1) 0%, transparent 55%), var(--background);
+  background-attachment: fixed;
+}
+
+:root[data-theme="newyearseve"] [data-theme-decor="newyearseve"] {
+  display: block;
+}
+
+/* ---------- fireworks ---------- */
+.nyeBurst {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+.nyeSpark {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 6px 1px var(--c);
+  opacity: 0;
+  animation: nyeSpark 4.4s ease-out var(--d) infinite;
+}
+
+/* Bursts in the first part of the cycle, then dark until the next. */
+@keyframes nyeSpark {
+  0% {
+    transform: rotate(var(--a)) translateX(0) scale(1);
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  22% {
+    transform: rotate(var(--a)) translateX(95px) translateY(10px) scale(0.6);
+    opacity: 0.8;
+  }
+  32%,
+  100% {
+    transform: rotate(var(--a)) translateX(112px) translateY(26px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+.nyeChampagne,
+.nyeGlasses {
+  position: absolute;
+  bottom: 10px;
+  filter: drop-shadow(0 0 10px rgba(243, 207, 107, 0.45));
+}
+.nyeChampagne {
+  left: 14px;
+  font-size: 32px;
+}
+.nyeGlasses {
+  right: 14px;
+  font-size: 30px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nyeBurst {
+    display: none;
+  }
+}

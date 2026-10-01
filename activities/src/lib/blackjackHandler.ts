@@ -16,6 +16,8 @@ type Result = "win" | "lose" | "push" | "blackjack"
 interface PlayerHand {
   cards: Card[]
   status: HandStatus
+  /** Doubled down: a second buy-in went on this hand, it got exactly one more card, and it stakes (and pays) twice the buy-in. */
+  doubled?: boolean
 }
 
 interface Spectator {
@@ -44,6 +46,10 @@ interface BlackjackPlayer {
    * change round to round) to the deathroll pot on every hand they lose while seated here. 0 means
    * no refund applies. */
   deathrollPotStake: number
+  /** Set only on a seat funded by a deathroll pot win: what's left of that pot money at this table. Every ante and payout moves it
+   * along with the chips (see applyToPotBankrolls), and the seat can never bet more than this - the pot win is played on its own,
+   * never with the chips the player had before. Undefined is an ordinary seat playing with all their chips. */
+  potBankroll?: number
 }
 
 interface RedealVote {
@@ -133,10 +139,11 @@ function normalizeLobby(raw: any): BlackjackLobby {
       username: p.username,
       avatar: p.avatar ?? null,
       sittingOut: p.sittingOut ?? false,
-      hands: (p.hands ?? []).map((h: any) => ({ cards: h.cards ?? [], status: h.status })),
+      hands: (p.hands ?? []).map((h: any) => ({ cards: h.cards ?? [], status: h.status, ...(h.doubled ? { doubled: true } : {}) })),
       startingChips: p.startingChips ?? 0,
       hasPlayed: p.hasPlayed ?? false,
       deathrollPotStake: p.deathrollPotStake ?? 0,
+      ...(typeof p.potBankroll === "number" ? { potBankroll: p.potBankroll } : {}),
     }
   }
   const spectators: Record<string, Spectator> = {}
@@ -259,6 +266,19 @@ function framesSince(raw: unknown, since: number) {
   return (Object.values(raw ?? {}) as { seq: number; view: unknown }[]).filter((f) => f && f.seq > since).sort((a, b) => a.seq - b.seq)
 }
 
+/** What this player can put on the table: all their chips, or for a pot-funded seat only what's left of the pot money. */
+function spendable(player: BlackjackPlayer | undefined, chips: number): number {
+  return player?.potBankroll === undefined ? chips : Math.min(chips, player.potBankroll)
+}
+
+/** Moves each pot-funded seat's bankroll by the same amount as its chips - called inside the transaction, so the two never drift apart. */
+function applyToPotBankrolls(lobby: BlackjackLobby, chipDeltas: Record<string, number> | undefined) {
+  for (const [id, delta] of Object.entries(chipDeltas ?? {})) {
+    const player = lobby.players[id]
+    if (player?.potBankroll !== undefined) player.potBankroll = Math.max(0, player.potBankroll + delta)
+  }
+}
+
 /** A player who staked real deathroll-pot money and won a hand this round earns a "Deal på ny". */
 function redealBonusRecipients(lobby: BlackjackLobby): string[] {
   return lobby.playerOrder.filter((id) => lobby.players[id].deathrollPotStake > 0 && lobby.results?.[id]?.some((r) => r === "win" || r === "blackjack"))
@@ -303,15 +323,18 @@ const chatPath = (instanceId: string, lobbyId: string) => `other/multiplayerBlac
 
 const fmtChips = (n: number) => n.toLocaleString("nb-NO")
 
-/** Counts the round that just resolved: each seated player's stake (one ante per hand) against what came back. */
+/** What a hand has riding on it: the buy-in, twice over if it was doubled. */
+const handStake = (lobby: BlackjackLobby, hand: PlayerHand | undefined) => lobby.buyIn * (hand?.doubled ? 2 : 1)
+
+/** Counts the round that just resolved: each seated player's stake (one ante per hand, two on a doubled one) against what came back. */
 function addRoundToTotals(lobby: BlackjackLobby) {
   const totals = { ...(lobby.totals ?? {}) }
   for (const id of lobby.playerOrder) {
     const player = lobby.players[id]
     const results = lobby.results?.[id]
     if (player.sittingOut || !results) continue
-    const staked = lobby.buyIn * results.length
-    const returned = results.reduce((sum, r) => sum + Math.floor(lobby.buyIn * PAYOUT_MULTIPLIER[r]), 0)
+    const staked = results.reduce((sum, _r, i) => sum + handStake(lobby, player.hands[i]), 0)
+    const returned = results.reduce((sum, r, i) => sum + Math.floor(handStake(lobby, player.hands[i]) * PAYOUT_MULTIPLIER[r]), 0)
     totals[id] = { name: player.username, net: (totals[id]?.net ?? 0) + returned - staked }
   }
   lobby.totals = totals
@@ -383,6 +406,7 @@ async function runLobbyMutation(
       box.failure = result
       return undefined
     }
+    applyToPotBankrolls(result.lobby, result.chipDeltas)
     result.redealBonusIds = settleRound(result.lobby, roundOverAtBefore)
     result.lobby.frameSeq = seq
     box.outcome = result
@@ -450,6 +474,7 @@ async function leaveLobby(firebase: FirebaseHelper, instanceId: string, lobbyId:
     if (current.status !== "playing" || !allPlayersDone(current)) return current
     const roundOverAtBefore = current.roundOverAt
     const resolved = resolveDealer(current)
+    applyToPotBankrolls(resolved.lobby, resolved.chipDeltas)
     box.outcome = { chipDeltas: resolved.chipDeltas, potRefundTotal: resolved.potRefundTotal, redealBonusIds: settleRound(resolved.lobby, roundOverAtBefore) }
     box.resolved = true
     return resolved.lobby
@@ -507,6 +532,7 @@ function tableView(lobby: BlackjackLobby, userId: string, me: { chips?: number; 
     myGotRedealBonus: !!lobby.redealBonusIds?.includes(userId),
     myChips: me.chips ?? 0,
     myRedealsAvailable: me.redeals ?? 0,
+    myPotBankroll: lobby.players[userId]?.potBankroll,
     iAmPlaying: !!lobby.players[userId],
     iAmSpectating: lobby.spectators[userId] !== undefined,
     spectators: Object.entries(lobby.spectators).map(([id, s]) => ({ id, username: s.username, avatar: discordAvatarUrl(id, s.avatar, 32) })),
@@ -517,7 +543,7 @@ function tableView(lobby: BlackjackLobby, userId: string, me: { chips?: number; 
         username: p.username,
         avatar: discordAvatarUrl(p.id, p.avatar, 48),
         sittingOut: p.sittingOut,
-        hands: p.hands.map((h) => ({ cards: h.cards, status: h.status, value: handValue(h.cards) })),
+        hands: p.hands.map((h) => ({ cards: h.cards, status: h.status, value: handValue(h.cards), doubled: !!h.doubled })),
       }
     }),
     dealer: { hand: dealerHand, value: lobby.dealerHidden ? undefined : handValue(lobby.dealerHand) },
@@ -643,7 +669,7 @@ function resolveDealer(lobby: BlackjackLobby): { lobby: BlackjackLobby; chipDelt
       }
       handResults.push(result)
 
-      const payout = Math.floor(lobby.buyIn * PAYOUT_MULTIPLIER[result])
+      const payout = Math.floor(handStake(lobby, hand) * PAYOUT_MULTIPLIER[result])
       if (payout > 0) chipDeltas[id] = (chipDeltas[id] ?? 0) + payout
       if (result === "lose" && player.deathrollPotStake > 0 && blackjackValues.deathrollRefundEnabled) {
         potRefunds[id] = (potRefunds[id] ?? 0) + Math.floor(player.deathrollPotStake * 0.5)
@@ -707,7 +733,7 @@ function performDeal(
   const chipDeltas: Record<string, number> = {}
 
   for (const id of lobby.playerOrder) {
-    const balance = chips[id] ?? 0
+    const balance = spendable(lobby.players[id], chips[id] ?? 0)
     if (balance < buyIn) {
       lobby.players[id] = { ...lobby.players[id], sittingOut: true, hands: [] }
       continue
@@ -769,11 +795,21 @@ function performRedeal(lobby: BlackjackLobby): BlackjackLobby {
 /** If every active player has now voted yes, redeals and signals that the requester's "Deal på ny"
  * needs consuming - otherwise leaves the vote pending. Pure/sync like resolveDealer: the actual
  * blackjackReDeals decrement happens in the caller, exactly once, after the transaction commits. */
-function maybeApplyRedealVote(lobby: BlackjackLobby): { lobby: BlackjackLobby; redealsConsumed: boolean } {
+function maybeApplyRedealVote(lobby: BlackjackLobby): {
+  lobby: BlackjackLobby
+  redealsConsumed: boolean
+  chipDeltas?: Record<string, number>
+  potRefundTotal?: number
+} {
   if (!lobby.redealVote) return { lobby, redealsConsumed: false }
   const allYes = activeVoterIds(lobby).every((id) => lobby.redealVote!.votes[id])
   if (!allYes) return { lobby, redealsConsumed: false }
-  return { lobby: performRedeal(lobby), redealsConsumed: true }
+  const redealt = performRedeal(lobby)
+  // The new deal can leave nobody with anything to do (everyone dealt a blackjack) - then it resolves straight away, same as a
+  // first deal does, rather than waiting on a move nobody can make.
+  if (!allPlayersDone(redealt)) return { lobby: redealt, redealsConsumed: true }
+  const resolved = resolveDealer(redealt)
+  return { lobby: resolved.lobby, redealsConsumed: true, chipDeltas: resolved.chipDeltas, potRefundTotal: resolved.potRefundTotal }
 }
 
 /** "Deal på ny" is a do-over of the hand you were dealt - once you've drawn a card (or split) you've played it, so it's no longer on offer.
@@ -809,7 +845,7 @@ export async function requestBlackjackRedeal(instanceId: string, lobbyId: string
     lobby.redealVote = { requestedBy: user.id, votes: { [user.id]: true }, createdAt: Date.now() }
     const resolved = maybeApplyRedealVote(lobby)
     redealsConsumed = resolved.redealsConsumed
-    return { lobby: resolved.lobby }
+    return { lobby: resolved.lobby, chipDeltas: resolved.chipDeltas, potRefundTotal: resolved.potRefundTotal }
   })
 
   if (redealsConsumed) await firebase.updateData({ [redealsPath(user.id)]: increment(-1) })
@@ -837,7 +873,7 @@ export async function voteBlackjackRedeal(instanceId: string, lobbyId: string, u
     requesterId = lobby.redealVote.requestedBy
     const resolved = maybeApplyRedealVote(lobby)
     redealsConsumed = resolved.redealsConsumed
-    return { lobby: resolved.lobby }
+    return { lobby: resolved.lobby, chipDeltas: resolved.chipDeltas, potRefundTotal: resolved.potRefundTotal }
   })
 
   if (redealsConsumed && requesterId) await firebase.updateData({ [redealsPath(requesterId)]: increment(-1) })
@@ -869,14 +905,19 @@ export async function adjustBlackjackBet(
   allIn: boolean
 ) {
   const firebase = new FirebaseHelper()
-  const myChips = allIn ? await firebase.getChips(user.id) : 0
+  const myChips = await firebase.getChips(user.id)
 
   return runLobbyMutation(firebase, instanceId, lobbyId, user.id, (lobby) => {
-    if (!lobby.players[user.id]) return { error: "Du er ikke ved dette bordet" }
+    const player = lobby.players[user.id]
+    if (!player) return { error: "Du er ikke ved dette bordet" }
     if (lobby.status === "playing") return { error: "Kan ikke endre satsing midt i en runde" }
 
-    const proposedBuyIn = allIn ? myChips : Math.max(0, Math.floor(Number(buyInInput) || 0))
+    const available = spendable(player, myChips)
+    const proposedBuyIn = allIn ? available : Math.max(0, Math.floor(Number(buyInInput) || 0))
     if (proposedBuyIn === lobby.buyIn) return { lobby }
+    if (player.potBankroll !== undefined && proposedBuyIn > available) {
+      return { error: `Du spiller med pott-pengene - du kan satse maks ${available} chips` }
+    }
 
     if (proposedBuyIn < lobby.buyIn || activeVoterIds(lobby).length <= 1) {
       lobby.buyIn = proposedBuyIn
@@ -1027,6 +1068,7 @@ export async function createBlackjackLobby(instanceId: string, user: Authenticat
         // deathroll pot, same as the old solo bot game did, but only for actual pot winnings (never
         // a manually-typed /blackjack vanlig stake) - see resolveDealer.
         deathrollPotStake: fromDeathrollPot ? buyIn : 0,
+        ...(fromDeathrollPot ? { potBankroll: buyIn } : {}),
       },
     },
     playerOrder: [user.id],
@@ -1111,6 +1153,21 @@ export async function forceBadDealerDraw(instanceId: string, lobbyId: string, us
     : await readLobby(firebase, instanceId, lobbyId)
   if (!lobby) return Response.json({ closed: true }, { status: 404 })
   return Response.json(await publicView(firebase, instanceId, lobby, user.id))
+}
+
+/** A pot-funded seat giving up the pot-money limit and carrying on with all their own chips. From here it's an ordinary seat:
+ * no more "tilbakelegg" or "Deal på ny" bonus, since it's no longer pot money at stake. */
+export async function playOnWithOwnChips(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
+  const firebase = new FirebaseHelper()
+  return runLobbyMutation(firebase, instanceId, lobbyId, user.id, (lobby) => {
+    const player = lobby.players[user.id]
+    if (!player) return { error: "Du er ikke ved dette bordet" }
+    if (lobby.status === "playing") return { error: "Vent til runden er ferdig" }
+    if (player.potBankroll === undefined) return { lobby }
+    delete player.potBankroll
+    player.deathrollPotStake = 0
+    return { lobby }
+  })
 }
 
 export async function leaveBlackjackLobby(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
@@ -1219,6 +1276,42 @@ export async function standBlackjack(instanceId: string, lobbyId: string, user: 
   })
 }
 
+/** Double down: on any hand still on its first two cards (split hands included), put in one more buy-in, take exactly one card,
+ * and the hand stands - it then stakes and pays double (see handStake). */
+export async function doubleBlackjack(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
+  const firebase = new FirebaseHelper()
+  // Same residual-staleness note as splitBlackjack.
+  const myChips = await firebase.getChips(user.id)
+
+  return runLobbyMutation(firebase, instanceId, lobbyId, user.id, (lobby) => {
+    const player = lobby.players[user.id]
+    const handIndex = player ? activeHandIndex(player) : -1
+    if (!player || lobby.status !== "playing" || handIndex === -1) {
+      return { error: "Ikke din tur akkurat nå" }
+    }
+
+    const hand = player.hands[handIndex]
+    if (hand.cards.length !== 2) return { error: "Du kan bare doble på de to første kortene" }
+    const available = spendable(player, myChips)
+    if (available < lobby.buyIn) {
+      return { error: `Ikke nok chips til å doble (du har ${available}, krever ${lobby.buyIn} til)` }
+    }
+
+    dropOwnRedealVote(lobby, user.id)
+    const drawn = drawCard(lobby.deck)
+    const cards = [...hand.cards, drawn.card]
+    lobby.deck = drawn.remaining
+    player.hands[handIndex] = { cards, status: handValue(cards) > 21 ? "bust" : "stood", doubled: true }
+    const chipDeltas: Record<string, number> = lobby.buyIn > 0 ? { [user.id]: -lobby.buyIn } : {}
+
+    if (!allPlayersDone(lobby)) return { lobby, chipDeltas }
+    const resolved = resolveDealer(lobby)
+    const mergedDeltas = { ...chipDeltas }
+    for (const [id, delta] of Object.entries(resolved.chipDeltas)) mergedDeltas[id] = (mergedDeltas[id] ?? 0) + delta
+    return { lobby: resolved.lobby, chipDeltas: mergedDeltas, potRefundTotal: resolved.potRefundTotal }
+  })
+}
+
 /** House rule: any two matching-rank cards can be split, including a hand that's already the
  * result of a split (drawing a third matching card lets you split again), as long as the buy-in
  * for the new hand is affordable. Each split hand is a fully separate bet from here on. */
@@ -1239,8 +1332,9 @@ export async function splitBlackjack(instanceId: string, lobbyId: string, user: 
     if (hand.cards.length !== 2 || hand.cards[0].rank !== hand.cards[1].rank) {
       return { error: "Denne hånden kan ikke splittes" }
     }
-    if (myChips < lobby.buyIn) {
-      return { error: `Ikke nok chips til å splitte (du har ${myChips}, krever ${lobby.buyIn} til)` }
+    const available = spendable(player, myChips)
+    if (available < lobby.buyIn) {
+      return { error: `Ikke nok chips til å splitte (du har ${available}, krever ${lobby.buyIn} til)` }
     }
 
     dropOwnRedealVote(lobby, user.id)

@@ -140,7 +140,7 @@ export function WheelGame({ accessToken }: { accessToken: string }) {
   return (
     <div>
       <p className={contentStyles.status}>{spinsLeft} spinn igjen i dag</p>
-      <SpinWheel sectors={sectors} rotation={rotation} highlightIndex={highlightIndex} />
+      <SpinWheel sectors={sectors} rotation={rotation} highlightIndex={highlightIndex} spinning={spinning} />
       <button className={styles.spinBtn} type="button" disabled={spinning || spinsLeft === 0} onClick={spin}>
         {spinsLeft === 0 ? "Ingen spinn igjen" : spinning ? "Spinner..." : "Spin"}
       </button>
