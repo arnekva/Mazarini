@@ -123,6 +123,10 @@ const CUSTOM_GAME_DATA: Record<string, unknown> = {
   usStatesByPopulation: cg_usStatesByPopulation,
 }
 
+export function loadCustomCategory(slug: string) {
+  return loadCustom(slug)
+}
+
 function loadCustom(slug: string): { items: MolItem[]; strings?: MolStrings } | null {
   const raw = CUSTOM_GAME_DATA[slug] as { game?: { data?: unknown[]; strings?: MolStrings } } | undefined
   if (!raw) return null

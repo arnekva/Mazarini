@@ -14,7 +14,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { IMoreOrLess, IMoreOrLessBanVote, MazariniStorage, MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { ChannelIds, ThreadIds } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils, ThreadIds } from '../utils/mentionUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
@@ -480,11 +480,16 @@ export class DailyJobs {
         // })
 
         // Snapshotted here since usersWithStats' `attempted` flag gets reset below, once the new day's category takes over
-        const banVote: IMoreOrLessBanVote | null = attempted
+        // A category someone picked with a "Velg MOL" token can't be voted away the day after - that would waste the token
+        const banVote: IMoreOrLessBanVote | null = attempted && !storage.moreOrLess.currentChosenBy
             ? { slug: storage.moreOrLess.current.slug, title: storage.moreOrLess.current.title, eligibleVoters: usersWithStats.map((u) => u.id), votes: [] }
             : null
 
-        const embed = EmbedUtils.createSimpleEmbed('More or Less', description + `\n\nDagens tema er **${game.title}**`)
+        const chosenBy = storage.moreOrLess.forcedNext ? storage.moreOrLess.forcedNextBy : undefined
+        const embed = EmbedUtils.createSimpleEmbed(
+            'More or Less',
+            description + `\n\nDagens tema er **${game.title}**${chosenBy ? ` (valgt av ${MentionUtils.mentionUser(chosenBy.id)} med Velg MOL)` : ''}`
+        )
         this.messageHelper.sendMessage(threadId, { embed: embed, ...(banVote ? { components: [MoreOrLess.buildBanVoteButtonRow(banVote)] } : {}) })
         this.client.database.updateStorage({
             moreOrLess: {
@@ -493,6 +498,8 @@ export class DailyJobs {
                 blacklist: blacklist,
                 vote: null,
                 forcedNext: null,
+                // Firebase has no undefined - and the lock (forcedNextBy) is cleared simply by not being written back
+                currentChosenBy: storage.moreOrLess.forcedNext && storage.moreOrLess.forcedNextBy ? { id: storage.moreOrLess.forcedNextBy.id, name: storage.moreOrLess.forcedNextBy.name } : null,
                 banVote: banVote,
             },
         })

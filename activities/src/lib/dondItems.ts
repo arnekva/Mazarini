@@ -40,6 +40,12 @@ const chest = (quality: "basic" | "premium" | "elite"): Omit<DondEffect, "id"> =
   loot: { type: "chest", quality },
 })
 
+/** Very high reward (high tier only): a token to pick tomorrow's More or Less category - see lib/molChoice.ts. Also a chest effect in the bot. */
+const chooseMol: Omit<DondEffect, "id"> = {
+  label: "Velg MOL",
+  apply: (user) => ({ molTokens: (user.molTokens ?? 0) + 1 }),
+}
+
 const raw: Record<Tier, Omit<DondEffect, "id">[]> = {
   veryLow: [pot(5000), buff("blackjackReDeals", 3, "1 Blackjack re-deal"), buff("doublePotWins", 2, "2x doubled potwins")],
   low: [pot(10000), buff("blackjackReDeals", 2, "2 Blackjack re-deal"), spins(1), box("basic")],
@@ -52,7 +58,7 @@ const raw: Record<Tier, Omit<DondEffect, "id">[]> = {
     box("premium"),
     chest("basic"),
   ],
-  high: [pot(30000), spins(5), buff("guaranteedLootColor", 3, "3x guaranteed colors"), box("elite"), chest("premium")],
+  high: [pot(30000), spins(5), buff("guaranteedLootColor", 3, "3x guaranteed colors"), box("elite"), chest("premium"), chooseMol],
 }
 
 const byTier: Record<Tier, DondEffect[]> = {

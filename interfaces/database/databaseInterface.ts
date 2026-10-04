@@ -110,6 +110,12 @@ export interface MazariniUser {
     warningCounter: number
     /** No. bonks */
     bonkCounter: number
+    /** No. kjevles (rolling pins to the head). Optional - undefined until the user gets their first one */
+    kjevleCounter?: number
+    /** Tokens for "Velg MOL" - each lets the user pick tomorrow's More or Less category in the Activities app. Optional, undefined until the first one is won */
+    molTokens?: number
+    /** Deal or No Deal tokens per tier - each one starts a round in the Activities app */
+    dondTokens?: IDondTokens
     lastFMUsername?: string
     dailySpinRewards?: number // Deprecated
     dailySpins?: number
@@ -441,6 +447,11 @@ export interface MazariniStorage {
         vote?: IMoreOrLessVote | null
         /** Admin override for tomorrow's category (/admin moreorless next). Takes priority over any pending vote, cleared at 05:00 once consumed */
         forcedNext?: IMoreOrLess | null
+        /** Set (by the Activities app) when forcedNext was picked with a "Velg MOL" token. Its existence locks tomorrow's category: nobody else can override it, and the
+         * vote buttons are disabled. Cleared at 05:00 together with forcedNext. */
+        forcedNextBy?: { id: string; name: string; at?: number } | null
+        /** Who picked today's category with a "Velg MOL" token (carried over from forcedNextBy at 05:00). While set, today's category can't be ban-voted when it closes. */
+        currentChosenBy?: { id: string; name: string } | null
         /** Vote to permanently ban the category that just closed, opened alongside the 05:00 "gårsdagens kategori" results. Replaced the next time that job runs. */
         banVote?: IMoreOrLessBanVote | null
     }
@@ -520,10 +531,10 @@ export interface ILuckyWheelReward {
 export interface IDailyGiftOption {
     /** Unique within a round, e.g. "dond-elite", "chips" */
     id: string
-    kind: 'dond' | 'box' | 'chest' | 'chips' | 'spin'
+    kind: 'dond' | 'box' | 'chest' | 'chips' | 'spin' | 'pot'
     /** dond (basic = 10k, premium = 20k, elite = 50k), box and chest */
     quality?: 'basic' | 'premium' | 'elite'
-    /** chips only */
+    /** chips and pot (added to the deathroll pot) only */
     amount?: number
 }
 

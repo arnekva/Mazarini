@@ -62,6 +62,16 @@ export namespace DondItems {
         },
     })
 
+    /** Very high reward: a token the user spends in the Activities app (More or Less page) to pick tomorrow's More or Less category. Also in the chest effect pool. */
+    export const chooseMolReward: IEffectItem = {
+        label: 'Velg MOL',
+        message: 'en token til å velge morgendagens More or Less-kategori! Bruk den nederst på More or Less-siden i Activity.',
+        effect: (user: MazariniUser) => {
+            user.molTokens = (user.molTokens ?? 0) + 1
+            return undefined
+        },
+    }
+
     export const veryLowQualityEffects: Array<IEffectItem> = [
         deathrollPotReward(5000),
         {
@@ -167,6 +177,7 @@ export namespace DondItems {
         },
         lootboxReward(LootboxQuality.Elite),
         lootchestReward(LootboxQuality.Premium),
+        chooseMolReward,
     ]
 
     export const getRewardsForQuality = (quality: MazariniEventRewardTier) => {

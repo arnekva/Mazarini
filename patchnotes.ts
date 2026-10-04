@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.4.0'
+    public static readonly currentVersion = '36.4.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,14 +27,10 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '* Å vinne potten gir nå +1 dpn. Denne forsvinner ikke dersom du sier "nei takk" til poten.',
-                '* Når du spiller Blackjack etter å ha vunnet potten (blackjack pot lobby) vil dine egne chips separares ut fra potten mens du gambler.',
-                '* Special numbers multiplier: 1 -> 3',
-                '* Un-Special numbers multiplier: -1 -> -2',
-                '* Blackjack: Double down er nå tilbake. Dealer peek er også lagt til nå.',
-                '* Blackjack: Lagt til en "recommended move" som kan hjelpe deg å ta bedre beslutninger i spillet.',
-                '* Mastermind har nå en bakgrunn i spillet så en lettere kan se fargene.',
-                '* Små forbedringer i Activity',
+                '* Ny effect (fra dond/chests): Bestem morgendagens MOL kategori. Hvis en bruker har brukt denne effekten er kategorien låst, og kan ikke overstyres av andre brukere eller stemmer. Du kan velge blant alle kategorier, inkludert blacklistede.',
+                '* Fikset UI i electricity',
+                '* Ny command: /kjevle. Bruk den når noen fortjener en generell kjevle i hodet.',
+                '* Fikset en feil som gjorde at Maldivene ble generert på en mongo måte. ',
             ].join('\n')
         )
         container.addSeparator()

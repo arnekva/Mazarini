@@ -11,6 +11,7 @@ import { dropCommand } from './commandStorage/drop'
 import { frameCommand } from './commandStorage/frame'
 import { jailCommand } from './commandStorage/jail'
 import { jailbreakCommand } from './commandStorage/jailbreak'
+import { kjevleCommand } from './commandStorage/kjevle'
 import { lootboxCommand } from './commandStorage/lootbox'
 import { luckyWheelCommand } from './commandStorage/luckywheel'
 import { ludoCommand } from './commandStorage/ludo'
@@ -84,4 +85,5 @@ export namespace CommandStorage {
     export const Deck = deckCommand
     export const Vaermelding = vaermeldingCommand
     export const Admin = adminCommand
+    export const Kjevle = kjevleCommand
 }

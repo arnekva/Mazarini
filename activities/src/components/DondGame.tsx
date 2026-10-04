@@ -149,6 +149,25 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
   const shownRef = useRef<{ version?: number; chatAt?: number }>({})
   const { channelId } = useDiscord()
   const [activeGames, setActiveGames] = useState<ActiveGame[]>([])
+  // The case(s) that most recently opened, worked out by diffing against the previous view (so it works the same for the player and
+  // spectators). `seq` re-triggers the highlight animation; the last one stays faintly yellow until the next case opens.
+  const [lastOpened, setLastOpened] = useState<{ nrs: number[]; values: number[]; seq: number }>({ nrs: [], values: [], seq: 0 })
+  const prevOpenedRef = useRef<Set<number> | null>(null)
+  const gameCases = status?.game?.cases
+  useEffect(() => {
+    if (!gameCases) {
+      prevOpenedRef.current = null
+      setLastOpened({ nrs: [], values: [], seq: 0 })
+      return
+    }
+    const now = new Set(gameCases.filter((c) => c.opened).map((c) => c.nr))
+    const prev = prevOpenedRef.current
+    prevOpenedRef.current = now
+    if (!prev) return
+    if (now.size < prev.size) return setLastOpened({ nrs: [], values: [], seq: 0 })
+    const fresh = gameCases.filter((c) => c.opened && !prev.has(c.nr))
+    if (fresh.length) setLastOpened((l) => ({ nrs: fresh.map((c) => c.nr), values: fresh.map((c) => c.value ?? 0), seq: l.seq + 1 }))
+  }, [gameCases])
 
   // While you're between rounds, keep a list of rounds in progress to watch (so the announcement button isn't the only way in).
   const browsing = !readOnly && !!status && !status.game
@@ -430,27 +449,36 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
         <div className={styles.board}>
           {columns.map((col, ci) => (
             <div key={ci} className={styles.boardCol}>
-              {col.map((b) => (
-                <div key={b.value} className={`${styles.boardValue} ${b.eliminated ? styles.boardGone : ""}`}>
-                  {fmt(b.value)}
-                </div>
-              ))}
+              {col.map((b) => {
+                const isLast = b.eliminated && lastOpened.values.includes(b.value)
+                return (
+                  <div
+                    key={isLast ? `${b.value}-${lastOpened.seq}` : b.value}
+                    className={`${styles.boardValue} ${b.eliminated ? styles.boardGone : ""} ${isLast ? styles.boardLast : ""}`}
+                  >
+                    {fmt(b.value)}
+                  </div>
+                )
+              })}
             </div>
           ))}
         </div>
 
         <div className={styles.caseGrid}>
-          {game.cases.map((c) => (
-            <button
-              key={c.nr}
-              type="button"
-              className={`${styles.case} ${c.mine ? styles.caseMine : ""} ${c.opened ? styles.caseOpened : ""}`}
-              disabled={busy || readOnly || c.mine || c.opened || game.state !== "opening"}
-              onClick={() => act({ action: "open", caseNr: c.nr })}
-            >
-              {c.opened ? fmt(c.value ?? 0) : c.nr}
-            </button>
-          ))}
+          {game.cases.map((c) => {
+            const isLast = c.opened && lastOpened.nrs.includes(c.nr)
+            return (
+              <button
+                key={isLast ? `${c.nr}-${lastOpened.seq}` : c.nr}
+                type="button"
+                className={`${styles.case} ${c.mine ? styles.caseMine : ""} ${c.opened ? styles.caseOpened : ""} ${isLast ? styles.caseLast : ""}`}
+                disabled={busy || readOnly || c.mine || c.opened || game.state !== "opening"}
+                onClick={() => act({ action: "open", caseNr: c.nr })}
+              >
+                {c.opened ? fmt(c.value ?? 0) : c.nr}
+              </button>
+            )
+          })}
         </div>
       </div>
       <p className={shared.info}>

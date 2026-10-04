@@ -163,6 +163,12 @@ export class FirebaseHelper {
         })
     }
 
+    /** Calls `callback` with who locked tomorrow's More or Less category (a "Velg MOL" token used in the Activities app), and with null when it's cleared. */
+    public subscribeToMolLock(callback: (lockedBy: { id: string; name: string } | null) => void): Unsubscribe {
+        const lockRef = ref(this.db, `${database}/other/moreOrLess/forcedNextBy`)
+        return onValue(lockRef, (snapshot) => callback(snapshot.exists() ? snapshot.val() : null))
+    }
+
     public async getMemes(): Promise<Meme[]> {
         return (await this.getData(`memes`)) as Meme[]
     }

@@ -7,6 +7,8 @@ import { randomUUID } from 'crypto'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { IMoreOrLess, IMoreOrLessBanVote, IMoreOrLessVote, MazariniStorage } from '../../interfaces/database/databaseInterface'
+
+type IMoreOrLessLock = NonNullable<MazariniStorage['moreOrLess']['forcedNextBy']>
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { CustomMOLHandler } from '../../res/games/moreOrLess/CustomMOLHandler'
 import { DateUtils } from '../../utils/dateUtils'
@@ -41,6 +43,8 @@ export class MoreOrLess extends AbstractCommands {
     static instance: MoreOrLess
     private game: IMoreOrLess
     private userGames: Map<string, IMoreOrLessUserGame>
+    /** The "morgendagens kategori" vote message posted by this process - kept so its buttons can be disabled when someone locks the category with a "Velg MOL" token. */
+    private voteMessage?: Message
     /** Historical blacklist, kept as a permanent seed alongside whatever the community votes into `storage.moreOrLess.blacklist` in firebase. */
     // :maggiscared:
     static readonly defaultBlacklistSeed: string[] = [
@@ -66,6 +70,8 @@ export class MoreOrLess extends AbstractCommands {
 
     onReady(): void {
         this.database.getStorage().then((storage) => (this.game = storage.moreOrLess.current))
+        // The Activities app locks tomorrow's category behind the bot's back (a "Velg MOL" token) - disable the vote buttons as soon as it does
+        this.database.subscribeToMolLock((lockedBy) => this.refreshVoteMessage(lockedBy))
     }
 
     public static async fetchAllGames(): Promise<IMoreOrLess[]> {
@@ -437,7 +443,7 @@ export class MoreOrLess extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
     }
 
-    private buildVoteButtonRows(vote: IMoreOrLessVote): ActionRowBuilder<ButtonBuilder>[] {
+    private buildVoteButtonRows(vote: IMoreOrLessVote, locked = false): ActionRowBuilder<ButtonBuilder>[] {
         const counts: { [key: string]: number } = {}
         Object.values(vote.votes ?? {}).forEach((choice) => {
             counts[choice] = (counts[choice] ?? 0) + 1
@@ -458,7 +464,7 @@ export class MoreOrLess extends AbstractCommands {
                 custom_id: `MORE_OR_LESS_VOTE;${candidate.slug}`,
                 style: ButtonStyle.Primary,
                 label: `${isMystery ? 'Mysteriekategori' : candidate.title} (${counts[candidate.slug] ?? 0})`,
-                disabled: false,
+                disabled: locked,
                 type: 2,
             })
             if (isMystery) return new ActionRowBuilder<ButtonBuilder>().addComponents(voteBtn)
@@ -468,17 +474,41 @@ export class MoreOrLess extends AbstractCommands {
                     custom_id: `MORE_OR_LESS_BLACKLIST;${candidate.slug}`,
                     style: ButtonStyle.Danger,
                     label: `Blacklist (${blacklistCounts[candidate.slug] ?? 0}/${totalVoters})`,
-                    disabled: false,
+                    disabled: locked,
                     type: 2,
                 })
             )
         })
     }
 
-    private addVoteComponents(container: SimpleContainer, vote: IMoreOrLessVote) {
+    /** `lockedBy` = someone has picked tomorrow's category with a "Velg MOL" token: the vote is over, so the buttons are disabled. */
+    private addVoteComponents(container: SimpleContainer, vote: IMoreOrLessVote, lockedBy?: IMoreOrLessLock | null) {
         container.addSeparator()
         container.addComponent(new TextDisplayBuilder().setContent('**Morgendagens kategori:**'), 'vote-header')
-        this.buildVoteButtonRows(vote).forEach((row, i) => container.addComponent(row, `vote-buttons-${i}`))
+        if (lockedBy) {
+            container.addComponent(
+                new TextDisplayBuilder().setContent(`Morgendagens kategori har blitt bestemt av ${MentionUtils.mentionUser(lockedBy.id)}.`),
+                'vote-locked'
+            )
+        }
+        this.buildVoteButtonRows(vote, !!lockedBy).forEach((row, i) => container.addComponent(row, `vote-buttons-${i}`))
+    }
+
+    /** Who has locked tomorrow's category with a "Velg MOL" token, if anyone - read fresh, since the Activities app sets it behind the bot's back. */
+    private async getMolLock(): Promise<IMoreOrLessLock | null> {
+        const lock = await this.client.database.getStorage().then((s) => s.moreOrLess?.forcedNextBy)
+        return lock ?? null
+    }
+
+    /** Rebuilds the posted vote message (if this process posted it) so its buttons are disabled the moment a token is used. */
+    private async refreshVoteMessage(lockedBy: IMoreOrLessLock | null) {
+        const message = this.voteMessage
+        if (!message || !lockedBy) return
+        const vote = (await this.client.database.getStorage()).moreOrLess?.vote
+        if (!vote) return
+        const container = await this.buildResultsContainer((userId) => UserUtils.findUserById(userId, this.client)?.username ?? 'Ukjent')
+        this.addVoteComponents(container, vote, lockedBy)
+        await message.edit({ components: [container.container] }).catch(() => undefined)
     }
 
     /** Builds the ban-vote button shown on the 05:00 "gårsdagens kategori" results message. Only the users who played that category may vote with it. */
@@ -506,14 +536,27 @@ export class MoreOrLess extends AbstractCommands {
         const previous = storage.moreOrLess.previous ?? []
         const candidates = await MoreOrLess.pickValidGames(3, previous, blacklist)
 
+        // A category may already have been picked with a "Velg MOL" token earlier in the day - then the vote is over before it starts
+        const lockedBy = storage.moreOrLess.forcedNextBy ?? null
         let vote: IMoreOrLessVote | undefined
         if (candidates.length > 0) {
             vote = { candidates, votes: {} }
-            this.addVoteComponents(container, vote)
+            this.addVoteComponents(container, vote, lockedBy)
         }
         await this.client.database.updateStorage({ moreOrLess: { ...storage.moreOrLess, vote: vote ?? null } })
 
-        this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, { components: [container.container] }, { isComponentOnly: true })
+        this.voteMessage = await this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, { components: [container.container] }, { isComponentOnly: true })
+    }
+
+    /** Tells a user who clicked a vote button on a message that's gone stale (the category got locked after it was posted), and fixes the message. */
+    private async rejectVoteIfLocked(interaction: BtnInteraction, vote: IMoreOrLessVote): Promise<boolean> {
+        const lockedBy = await this.getMolLock()
+        if (!lockedBy) return false
+        this.messageHelper.replyToInteraction(interaction, `Morgendagens kategori har blitt bestemt av ${MentionUtils.mentionUser(lockedBy.id)}.`, { ephemeral: true })
+        const container = await this.buildResultsContainer((userId) => UserUtils.findUserById(userId, this.client)?.username ?? 'Ukjent')
+        this.addVoteComponents(container, vote, lockedBy)
+        await interaction.message.edit({ components: [container.container] }).catch(() => undefined)
+        return true
     }
 
     /** Title to use in logs/messages for a vote candidate - never the real title for the hidden 3rd (mystery) candidate. */
@@ -529,6 +572,7 @@ export class MoreOrLess extends AbstractCommands {
         if (!vote) {
             return this.messageHelper.replyToInteraction(interaction, 'Avstemningen for morgendagens kategori er ikke lenger åpen.', { ephemeral: true })
         }
+        if (await this.rejectVoteIfLocked(interaction, vote)) return
         const choice = interaction.customId.split(';')[1]
         vote.votes = vote.votes ?? {} // firebase drops empty objects, so a freshly created vote may come back without `votes`
         vote.votes[interaction.user.id] = choice
@@ -538,7 +582,7 @@ export class MoreOrLess extends AbstractCommands {
 
         interaction.deferUpdate()
         const container = await this.buildResultsContainer((userId) => UserUtils.findUserById(userId, this.client)?.username ?? 'Ukjent')
-        this.addVoteComponents(container, vote)
+        this.addVoteComponents(container, vote, null)
         await interaction.message.edit({ components: [container.container] })
     }
 
@@ -549,6 +593,7 @@ export class MoreOrLess extends AbstractCommands {
         if (!vote) {
             return this.messageHelper.replyToInteraction(interaction, 'Avstemningen for morgendagens kategori er ikke lenger åpen.', { ephemeral: true })
         }
+        if (await this.rejectVoteIfLocked(interaction, vote)) return
         if (!vote.votes?.[interaction.user.id]) {
             return this.messageHelper.replyToInteraction(interaction, 'Du må stemma på ein kategori før du kan velga stemma for å blacklista', {
                 ephemeral: true,

@@ -220,6 +220,19 @@ export class JokeCommands extends AbstractCommands {
         this.client.database.updateUser(dbUser)
     }
 
+    private async sendKjevle(interaction: ChatInteraction) {
+        const user = interaction.options.get('bruker')?.user
+        const dbUser = await this.client.database.getUser(user.id)
+        // Introduced after the user records, so it starts out undefined
+        const kjevleCount = (dbUser.kjevleCounter ?? 0) + 1
+        dbUser.kjevleCounter = kjevleCount
+        this.client.database.updateUser(dbUser)
+        this.messageHelper.replyToInteraction(
+            interaction,
+            `${MentionUtils.mentionUser(user.id)}, du har fått en kjevle i hodet for ${kjevleCount}. gang 🪵`
+        )
+    }
+
     private static uwuText(t: string) {
         const firstChoice = ArrayUtils.randomChoiceFromArray(textArrays.asciiEmojies)
         return firstChoice.concat(
@@ -373,6 +386,12 @@ export class JokeCommands extends AbstractCommands {
                         commandName: 'bonk',
                         command: (interaction: ChatInteraction) => {
                             this.sendBonk(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'kjevle',
+                        command: (interaction: ChatInteraction) => {
+                            this.sendKjevle(interaction)
                         },
                     },
                     {

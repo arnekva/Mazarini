@@ -1,0 +1,51 @@
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--card-border));
+  background: var(--gold-glow);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.text {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 14px;
+}
+
+.confirmBtn {
+  background: linear-gradient(135deg, var(--gold), var(--purple));
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  color: #111;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirmBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.error {
+  color: var(--red);
+  font-size: 13px;
+}

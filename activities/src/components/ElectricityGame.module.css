@@ -4,7 +4,9 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1.1;
-  margin: 8px 0 14px;
+  /* Seats stick out past the ellipse (the top and bottom ones are centred near its edge), so leave room above and below -
+     otherwise your own seat at the bottom lands on top of the buttons under the table. */
+  margin: 40px 0 96px;
   border-radius: 50%;
   background: radial-gradient(ellipse at center, color-mix(in srgb, var(--gold) 14%, var(--card)) 0%, var(--card) 70%);
   border: 1px solid var(--card-border);
@@ -31,11 +33,34 @@
   text-align: center;
 }
 
-.centerText {
-  font-size: 12px;
+.turnBar {
+  text-align: center;
+  font-size: 13px;
   font-weight: 700;
   color: var(--muted);
-  max-width: 130px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+}
+
+.turnBarMe {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 60%, transparent);
+  background: var(--gold-glow);
+}
+
+.badges {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.turnBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gold);
 }
 
 .deck {

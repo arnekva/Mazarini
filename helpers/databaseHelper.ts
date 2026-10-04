@@ -488,6 +488,11 @@ export class DatabaseHelper {
         return this.db.subscribeToPendingDeathrollPot(callback)
     }
 
+    /** Calls `callback` when tomorrow's More or Less category gets locked by someone's "Velg MOL" token (or unlocked again by the daily job). */
+    public subscribeToMolLock(callback: (lockedBy: { id: string; name: string } | null) => void): Unsubscribe {
+        return this.db.subscribeToMolLock(callback)
+    }
+
     /** Takes everything the Activities app has queued up for the pot (other/deathrollPotPending) and returns it. The pending
      * value is reduced with an atomic increment rather than reset to 0, so an amount added between the read and the
      * subtraction is kept for the next drain instead of lost. */

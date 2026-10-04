@@ -13,7 +13,7 @@ import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { announceInChannel, lootButtonComponent } from "./discordMessage"
 
-export type GiftKind = "dond" | "box" | "chest" | "chips" | "spin"
+export type GiftKind = "dond" | "box" | "chest" | "chips" | "spin" | "pot"
 export type GiftQuality = "basic" | "premium" | "elite"
 
 export interface DailyGiftOption {
@@ -21,7 +21,7 @@ export interface DailyGiftOption {
   id: string
   kind: GiftKind
   quality?: GiftQuality
-  /** Chips only. */
+  /** Chips and pot only. */
   amount?: number
 }
 
@@ -60,11 +60,13 @@ export function giftLabel(option: DailyGiftOption): string {
       return `${(option.amount ?? 0).toLocaleString("nb-NO")} chips`
     case "spin":
       return "Ekstra spinn på Lykkehjulet"
+    case "pot":
+      return `Legg til ${(option.amount ?? 0).toLocaleString("nb-NO")} i deathroll-potten`
   }
 }
 
 export function giftIcon(option: DailyGiftOption): string {
-  return { dond: "💼", box: "📦", chest: "🎁", chips: "🪙", spin: "🎡" }[option.kind]
+  return { dond: "💼", box: "📦", chest: "🎁", chips: "🪙", spin: "🎡", pot: "💀" }[option.kind]
 }
 
 const QUALITIES: GiftQuality[] = ["basic", "premium", "elite"]
@@ -82,6 +84,10 @@ export function parseGiftOptions(raw: unknown): DailyGiftOption[] | string {
       const amount = Math.floor(Number(item.amount))
       if (!(amount > 0) || amount > 10_000_000) return "Chips må være et tall over 0"
       options.push({ id: "chips", kind, amount })
+    } else if (kind === "pot") {
+      const amount = Math.floor(Number(item.amount))
+      if (!(amount > 0) || amount > 10_000_000) return "Potten må få et tall over 0"
+      options.push({ id: "pot", kind, amount })
     } else if (kind === "spin") {
       options.push({ id: "spin", kind })
     } else return `Ukjent gavetype: ${kind}`
@@ -114,13 +120,19 @@ export async function grantGift(firebase: FirebaseHelper, user: AuthenticatedDis
     updates.dailySpins = typeof spins === "number" ? increment(1) : 2
   }
   if (Object.keys(updates).length > 0) await firebase.updateUserFields(user.id, updates)
+  // Not a user field: goes through the pending pot (a server-side atomic increment), so any number of people picking this at the same
+  // moment all add up, and the bot's live listener drains it into its in-memory pot right away.
+  if (option.kind === "pot") await firebase.addToDeathrollPot(option.amount ?? 0)
 
   // Announced in the channel the Activity was started from. A box or chest is opened the usual way, with the bot's "Open loot"
   // button on the same message.
   const loot = option.kind === "box" || option.kind === "chest" ? option.kind : undefined
   after(() =>
     announceInChannel(user.channelId, {
-      content: `${giftIcon(option)} <@${user.id}> har åpnet gaven og fikk **${giftLabel(option)}**!`,
+      content:
+        option.kind === "pot"
+          ? `${giftIcon(option)} <@${user.id}> har åpnet gaven og la **${(option.amount ?? 0).toLocaleString("nb-NO")}** chips i deathroll-potten!`
+          : `${giftIcon(option)} <@${user.id}> har åpnet gaven og fikk **${giftLabel(option)}**!`,
       ...(loot ? { components: [lootButtonComponent(user.id, option.quality ?? "basic", loot)] } : {}),
     })
   )

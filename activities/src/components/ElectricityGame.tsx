@@ -88,7 +88,7 @@ function CardBack() {
 function seatPosition(index: number, count: number, myIndex: number) {
   const offset = myIndex >= 0 ? myIndex : 0
   const angle = Math.PI / 2 + (2 * Math.PI * (index - offset)) / count
-  return { left: `${50 + 40 * Math.cos(angle)}%`, top: `${50 + 38 * Math.sin(angle)}%` }
+  return { left: `${50 + 40 * Math.cos(angle)}%`, top: `${50 + 36 * Math.sin(angle)}%` }
 }
 
 export function ElectricityGame({ accessToken }: { accessToken: string }) {
@@ -293,6 +293,12 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
         </button>
       </div>
 
+      {/* Whose turn it is lives above the table, not in its middle where a seat could cover it. */}
+      <div className={`${styles.turnBar} ${myTurn ? styles.turnBarMe : ""}`}>
+        {table.status === "waiting" && "Venter på start"}
+        {table.status === "playing" && (myTurn ? "Din tur - trekk et kort!" : `${turnPlayer?.username ?? "?"} sin tur`)}
+      </div>
+
       <div className={styles.table}>
         <div className={styles.center}>
           <button
@@ -305,10 +311,6 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
             <CardBack />
             <span className={styles.deckCount}>{table.deckCount}</span>
           </button>
-          <div className={styles.centerText}>
-            {table.status === "waiting" && "Venter på start"}
-            {table.status === "playing" && (myTurn ? "Din tur - trekk!" : `${turnPlayer?.username ?? "?"} sin tur`)}
-          </div>
         </div>
 
         {table.players.map((p, i) => {
@@ -329,7 +331,12 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
                   {p.username}
                   {p.id === table.hostId ? " 👑" : ""}
                 </span>
-                {drinks && <span className={styles.drinkBadge}>🍷 {sipLabel}</span>}
+                {(drinks || isTurn) && (
+                  <span className={styles.badges}>
+                    {isTurn && <span className={styles.turnBadge}>{p.id === myId ? "Din tur" : "Tur"}</span>}
+                    {drinks && <span className={styles.drinkBadge}>🍷 {sipLabel}</span>}
+                  </span>
+                )}
               </div>
             </div>
           )
@@ -338,7 +345,12 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
 
       {table.status === "playing" && table.drinkers.length > 0 && (
         <div className={styles.drinkBanner}>
-          {table.sips === "inf" ? "♾ Det går i sirkel! Alle chugger!" : `${lastDrawer?.username ?? "?"} trakk - ${table.drinkers.length} må drikke ${table.sips}!`}
+          {table.sips === "inf"
+            ? "♾ Det går i sirkel! Alle chugger!"
+            : `${lastDrawer ? `${lastDrawer.username} trakk${lastDrawer.card ? ` ${lastDrawer.card.rank}${lastDrawer.card.suit}` : ""}` : "Trukket"} - ${table.players
+                .filter((p) => drinkerSet.has(p.id))
+                .map((p) => (p.id === myId ? "du" : p.username))
+                .join(", ")} drikker ${table.sips}!`}
         </div>
       )}
 

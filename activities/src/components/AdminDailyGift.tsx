@@ -9,7 +9,7 @@ type Tiered = "dond" | "box" | "chest"
 
 interface GiftOption {
   id: string
-  kind: Tiered | "chips" | "spin"
+  kind: Tiered | "chips" | "spin" | "pot"
   quality?: Quality
   amount?: number
 }
@@ -35,6 +35,7 @@ function optionText(o: GiftOption): string {
   const tier = TIERED.find((t) => t.kind === o.kind)
   if (tier && o.quality) return `${tier.icon} ${tier.title} ${tier.names[o.quality]}`
   if (o.kind === "chips") return `🪙 ${(o.amount ?? 0).toLocaleString("nb-NO")} chips`
+  if (o.kind === "pot") return `💀 Legg til ${(o.amount ?? 0).toLocaleString("nb-NO")} i deathroll-potten`
   return "🎡 Ekstra spinn"
 }
 
@@ -44,6 +45,8 @@ export function AdminDailyGift({ accessToken, myId }: { accessToken: string; myI
   const [tiers, setTiers] = useState<Set<string>>(new Set())
   const [chipsOn, setChipsOn] = useState(false)
   const [chips, setChips] = useState("")
+  const [potOn, setPotOn] = useState(false)
+  const [pot, setPot] = useState("")
   const [spin, setSpin] = useState(false)
   const [recipients, setRecipients] = useState("")
   const [busy, setBusy] = useState(false)
@@ -61,6 +64,9 @@ export function AdminDailyGift({ accessToken, myId }: { accessToken: string; myI
     const chipsOption = options.find((o) => o.kind === "chips")
     setChipsOn(!!chipsOption)
     setChips(chipsOption?.amount ? String(chipsOption.amount) : "")
+    const potOption = options.find((o) => o.kind === "pot")
+    setPotOn(!!potOption)
+    setPot(potOption?.amount ? String(potOption.amount) : "")
     setSpin(options.some((o) => o.kind === "spin"))
     setRecipients((res.gift?.recipients ?? res.defaultRecipients).join("\n"))
     setLoaded(true)
@@ -82,9 +88,11 @@ export function AdminDailyGift({ accessToken, myId }: { accessToken: string; myI
   }
 
   const chipsAmount = Math.floor(Number(chips))
+  const potAmount = Math.floor(Number(pot))
   const options: GiftOption[] = [
     ...TIERED.flatMap((t) => QUALITIES.filter((q) => tiers.has(tierKey(t.kind, q))).map((q) => ({ id: tierKey(t.kind, q), kind: t.kind, quality: q }))),
     ...(chipsOn && chipsAmount > 0 ? [{ id: "chips", kind: "chips" as const, amount: chipsAmount }] : []),
+    ...(potOn && potAmount > 0 ? [{ id: "pot", kind: "pot" as const, amount: potAmount }] : []),
     ...(spin ? [{ id: "spin", kind: "spin" as const }] : []),
   ]
   const recipientIds = recipients.split(/[\s,]+/).filter(Boolean)
@@ -170,6 +178,28 @@ export function AdminDailyGift({ accessToken, myId }: { accessToken: string; myI
               setChipsOn(e.target.value !== "")
             }}
             aria-label="Antall chips"
+          />
+        </div>
+      </div>
+
+      <div className={styles.group}>
+        <span className={styles.groupTitle}>💀 Deathroll-pott</span>
+        <div className={styles.pills}>
+          <button type="button" className={`${styles.pill} ${potOn ? styles.pillOn : ""}`} aria-pressed={potOn} onClick={() => setPotOn((on) => !on)}>
+            {potOn ? "På" : "Av"}
+          </button>
+          <input
+            className={styles.input}
+            type="number"
+            min={1}
+            step={1000}
+            placeholder="Legg til i potten"
+            value={pot}
+            onChange={(e) => {
+              setPot(e.target.value)
+              setPotOn(e.target.value !== "")
+            }}
+            aria-label="Chips å legge i deathroll-potten"
           />
         </div>
       </div>

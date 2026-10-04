@@ -131,6 +131,51 @@
   font-size: 10px;
 }
 
+/* The most recently opened case: a bright yellow outline that fades out over a couple of seconds, leaving a faint one behind
+   (so it can still be found while the player is thinking over an offer). Re-keyed per opening, so the animation replays. */
+.caseLast {
+  border-color: rgba(255, 214, 10, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 214, 10, 0.3);
+  animation: caseFlash 2.4s ease-out;
+}
+
+.boardLast {
+  animation: boardFlash 2.4s ease-out;
+}
+
+@keyframes caseFlash {
+  0% {
+    opacity: 1;
+    border-color: #ffd60a;
+    box-shadow: 0 0 0 3px #ffd60a, 0 0 14px 2px rgba(255, 214, 10, 0.7);
+    transform: scale(1.12);
+  }
+  35% {
+    opacity: 1;
+    border-color: #ffd60a;
+    box-shadow: 0 0 0 3px #ffd60a, 0 0 14px 2px rgba(255, 214, 10, 0.7);
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 0.45;
+    border-color: rgba(255, 214, 10, 0.55);
+    box-shadow: 0 0 0 1px rgba(255, 214, 10, 0.3);
+    transform: scale(1);
+  }
+}
+
+@keyframes boardFlash {
+  0%,
+  35% {
+    opacity: 1;
+    box-shadow: 0 0 0 2px #ffd60a, 0 0 12px rgba(255, 214, 10, 0.6);
+  }
+  100% {
+    opacity: 0.25;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
 @media (min-width: 768px) {
   .layout {
     flex-direction: row;

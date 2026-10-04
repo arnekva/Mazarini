@@ -4,6 +4,7 @@ import { callApi } from "@/lib/apiClient"
 import { proxyImageUrl } from "@/lib/imgProxy"
 import { useEffect, useState } from "react"
 import contentStyles from "./GameContent.module.css"
+import { MolChoice } from "./MolChoice"
 import styles from "./MoreOrLessModal.module.css"
 
 interface Item {
@@ -217,6 +218,8 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
       {result && <RoundResultCard result={result} strings={status.category.strings} best={liveStats.bestAttempt} />}
 
       {roundOver && <button className={styles.startBtn} type="button" disabled={busy} onClick={start}>Prøv igjen</button>}
+
+      <MolChoice accessToken={accessToken} />
     </>
   )
 }

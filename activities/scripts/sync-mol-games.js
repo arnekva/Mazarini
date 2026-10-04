@@ -20,4 +20,7 @@ for (const file of files) {
   fs.copyFileSync(path.join(SRC_DIR, file), path.join(DEST_DIR, file))
 }
 
+// The category list (titles etc.) for the custom games - what the "Velg MOL" dropdown offers alongside the API's categories.
+fs.copyFileSync(path.join(SRC_DIR, "..", "allCustomGames.json"), path.join(DEST_DIR, "allCustomGames.json"))
+
 console.log(`sync-mol-games: copied ${files.length} custom More-or-Less game file(s) from res/ into src/data/more-or-less/`)

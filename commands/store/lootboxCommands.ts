@@ -39,6 +39,7 @@ import { hpCCG } from '../ccg/cards/hpCCG'
 import { mazariniCCG } from '../ccg/cards/mazariniCCG'
 import { swCCG } from '../ccg/cards/swCCG'
 import { CCGCard } from '../ccg/ccgInterface'
+import { DondItems } from '../games/content/dondItems'
 import { DealOrNoDeal } from '../games/dealOrNoDeal'
 
 interface IPendingTrade {
@@ -1456,6 +1457,7 @@ const effects: Array<IEffectItem> = [
         message: '',
         effect: () => {},
     },
+    DondItems.chooseMolReward,
 ]
 
 const defaultEffects: IUserEffects = {
