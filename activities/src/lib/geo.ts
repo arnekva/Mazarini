@@ -1,4 +1,5 @@
 import countries from "world-countries"
+import { capitalOf } from "./capitalOverrides"
 
 type LatLng = [number, number]
 
@@ -8,7 +9,7 @@ function findCountryByName(name: string) {
 }
 
 function findCountryByCapital(name: string) {
-  return countries.find((c) => c.capital?.[0]?.toLowerCase() === name.toLowerCase())
+  return countries.find((c) => capitalOf(c)?.toLowerCase() === name.toLowerCase())
 }
 
 /** `kind` says whether `name` is a country name (Flag/Outline) or a capital city name (Capital). */

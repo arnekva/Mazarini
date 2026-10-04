@@ -1,4 +1,5 @@
 import countries from "world-countries"
+import { capitalOf } from "./capitalOverrides"
 
 // Matches Jobs/dailyHubChallengesJob.ts on the bot side - dependent territories (French Guiana,
 // Puerto Rico, etc.) are never a valid answer, so they shouldn't be offered as suggestions either.
@@ -9,4 +10,4 @@ const sovereign = countries.filter((c) => c.independent !== false || KEEP_DESPIT
 // Suggestion sources for the free-text typeahead - not the source of truth for a correct answer
 // (the server holds that), just what the UI offers to autocomplete against.
 export const countryNames = sovereign.map((c) => c.name.common).sort()
-export const capitalNames = sovereign.filter((c) => c.capital?.[0]).map((c) => c.capital[0]).sort()
+export const capitalNames = sovereign.flatMap((c) => capitalOf(c) ?? []).sort()

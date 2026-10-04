@@ -18,6 +18,14 @@ interface Country {
 
 const DISTRACTOR_COUNT = 3
 
+/** `world-countries` is where capitals come from, and its latest release (5.1.0, Feb 2025) predates capitals that have changed since. These win over it.
+ * Same list as CAPITAL_OVERRIDES in the Activities app's lib/capitalOverrides.ts - kept in sync by hand. */
+const CAPITAL_OVERRIDES: Record<string, string> = {
+    // Moved from Malabo by presidential decree, 3 January 2026
+    'Equatorial Guinea': 'Ciudad de la Paz',
+}
+const capitalOf = (c: Country): string | undefined => CAPITAL_OVERRIDES[c.name.common] ?? c.capital?.[0]
+
 function shuffled<T>(items: T[]): T[] {
     return RandomUtils.shuffleList([...items])
 }
@@ -57,7 +65,7 @@ function getCountries(): Country[] {
 export async function generateDailyHubChallenges(client: MazariniClient, users: MazariniUser[]): Promise<JobStatus> {
     try {
         const countries = getCountries()
-        const withCapital = countries.filter((c) => c.name?.common && c.capital?.[0])
+        const withCapital = countries.filter((c) => c.name?.common && capitalOf(c))
         const withFlag = countries.filter((c) => c.name?.common && c.cca2)
         const outlineCapableIds = await getOutlineCapableCcn3s()
         const withOutline = countries.filter((c) => c.name?.common && c.ccn3 && outlineCapableIds.has(c.ccn3))
@@ -73,8 +81,8 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
 
         const { picked: capitalCountry, newPrevious: capitalHistory } = pickWithHistory(withCapital, history.capital ?? [])
         const capitalOptions = shuffled([
-            capitalCountry.capital[0],
-            ...pickDistractors(withCapital, capitalCountry, DISTRACTOR_COUNT).map((c) => c.capital[0]),
+            capitalOf(capitalCountry),
+            ...pickDistractors(withCapital, capitalCountry, DISTRACTOR_COUNT).map(capitalOf),
         ])
 
         const { picked: outlineCountry, newPrevious: outlineHistory } = pickWithHistory(withOutline, history.outline ?? [])
@@ -88,7 +96,7 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
         const challenges: IDailyHubChallenges = {
             date: new Date().toISOString().slice(0, 10),
             flag: { options: flagOptions, answer: flagCountry.name.common, flagPng: flagPngUrl(flagCountry.cca2) },
-            capital: { options: capitalOptions, answer: capitalCountry.capital[0], countryName: capitalCountry.name.common },
+            capital: { options: capitalOptions, answer: capitalOf(capitalCountry), countryName: capitalCountry.name.common },
             outline: { options: outlineOptions, answer: outlineCountry.name.common, path: outline.path, viewBox: outline.viewBox },
         }
 

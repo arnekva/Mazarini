@@ -168,12 +168,24 @@ function selectPieces(polygons: Polygon[], geoArea: GeoArea): Polygon[] {
 // unreachable, slow or huge - and for when its idea of the country differs too much from the atlas's (some of its sources draw the
 // territorial waters rather than the coast, which is the opposite of what's wanted here).
 
+/** d3 reads a ring that's the "wrong" way round as everything *except* what's inside it (a sphere-sized area), which is also what a degenerate sliver
+ * (a few almost-collinear points - the atlas has some for the Maldives) turns out to be. Those get turned the right way round. Left alone, one of them
+ * counts as the country's biggest piece and is drawn as a rectangle the size of the world. */
+function windRight(polygons: Polygon[], geoArea: GeoArea): Polygon[] {
+    return polygons.map((polygon) => (geoArea({ type: 'Polygon', coordinates: polygon }) > 2 * Math.PI ? polygon.map((ring) => [...ring].reverse()) : polygon))
+}
+
 /** Fewer points than this in the atlas means it only has a rough shape - about a third of all countries, the small ones. */
 const COARSE_POINT_COUNT = 600
+/** ...and so does a country that's many tiny pieces (an atlas atoll is a 4-point ring): the Maldives have over a thousand points, spread over 176 islands. */
+const COARSE_MIN_POINTS_PER_PIECE = 15
+const COARSE_MIN_PIECES = 20
 const FINE_SOURCE_MAX_BYTES = 25 * 1024 * 1024
 /** How the finer source's total area may compare to the atlas's before it's taken to be a different thing (waters, another border). Generous,
  * because the atlas's own idea of a country this small is rough too. */
-const FINE_SOURCE_AREA_RATIO = { min: 0.6, max: 1.7 }
+const FINE_SOURCE_AREA_RATIO = { min: 0.6, max: 2 }
+/** An atlas outline with fewer points than this isn't a shape to compare the finer source's area against. */
+const ATLAS_MARKER_POINT_COUNT = 20
 
 async function fetchFinePolygons(cca3: string, atlasPolygons: Polygon[], geoArea: GeoArea): Promise<Polygon[] | undefined> {
     try {
@@ -183,11 +195,16 @@ async function fetchFinePolygons(cca3: string, atlasPolygons: Polygon[], geoArea
         if (!response.ok || Number(response.headers.get('content-length') ?? 0) > FINE_SOURCE_MAX_BYTES) return undefined
         const collection = await response.json()
 
-        const polygons: Polygon[] = ((collection?.features ?? []) as any[])
-            .flatMap((f) => polygonsOf(f.geometry))
-            // GeoJSON and d3 disagree on which way round a ring goes, and d3 reads a ring that's the "wrong" way round as everything *except* what's inside it.
-            .map((polygon) => (geoArea({ type: 'Polygon', coordinates: polygon }) > 2 * Math.PI ? polygon.map((ring) => [...ring].reverse()) : polygon))
+        // GeoJSON and d3 disagree on which way round a ring goes - see windRight.
+        const polygons = windRight(
+            ((collection?.features ?? []) as any[]).flatMap((f) => polygonsOf(f.geometry)),
+            geoArea
+        )
         if (polygons.length === 0) return undefined
+
+        // An atlas shape that's only a handful of points (Monaco's is 12, the Vatican's a degenerate 4) is a marker rather than a measurement - nothing
+        // to compare against. Holding the finer source to it rejected exactly the countries that need it most.
+        if (countPoints(atlasPolygons) < ATLAS_MARKER_POINT_COUNT) return polygons
 
         const area = (list: Polygon[]) => list.reduce((sum, polygon) => sum + geoArea({ type: 'Polygon', coordinates: polygon }), 0)
         const ratio = area(polygons) / area(atlasPolygons)
@@ -237,8 +254,10 @@ export async function getCountryOutlinePath(ccn3: string, cca3?: string): Promis
     const rawTarget = features.find((f: any) => f.id === ccn3)
     if (!rawTarget) return undefined
 
-    let polygons = polygonsOf(rawTarget.geometry)
-    if (cca3 && countPoints(polygons) < COARSE_POINT_COUNT) polygons = (await fetchFinePolygons(cca3, polygons, geoArea)) ?? polygons
+    let polygons = windRight(polygonsOf(rawTarget.geometry), geoArea)
+    const points = countPoints(polygons)
+    const isCoarse = points < COARSE_POINT_COUNT || (polygons.length >= COARSE_MIN_PIECES && points / polygons.length < COARSE_MIN_POINTS_PER_PIECE)
+    if (cca3 && isCoarse) polygons = (await fetchFinePolygons(cca3, polygons, geoArea)) ?? polygons
     const target = { type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: selectPieces(polygons, geoArea) } }
 
     // Turned so the country itself is in the middle of the map: one that lies across the date line (Russia, the USA with the Aleutians, Fiji)
