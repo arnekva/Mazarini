@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.4.1'
+    public static readonly currentVersion = '36.4.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,10 +27,9 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '* Ny effect (fra dond/chests): Bestem morgendagens MOL kategori. Hvis en bruker har brukt denne effekten er kategorien låst, og kan ikke overstyres av andre brukere eller stemmer. Du kan velge blant alle kategorier, inkludert blacklistede.',
-                '* Fikset UI i electricity',
-                '* Ny command: /kjevle. Bruk den når noen fortjener en generell kjevle i hodet.',
-                '* Fikset en feil som gjorde at Maldivene ble generert på en mongo måte. ',
+                '* Fikset en feil som gjorde at noen ikke-støttede MoL kategorier ble vist i listen - disse støttes nå.',
+                '* Fikset en feil med formatteringen av årstall i MoL.',
+                '* Fikset en feil som gjorde at valuta-tegn (€£$) ikke ble vist i MoL.',
             ].join('\n')
         )
         container.addSeparator()

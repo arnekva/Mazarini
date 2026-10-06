@@ -595,6 +595,7 @@ export interface IMoreOrLess {
     strings?: {
         verb: string
         valueTitle: string
+        valuePrefix?: string
         valueSuffix?: string
         buttonMore?: string
         buttonLess?: string

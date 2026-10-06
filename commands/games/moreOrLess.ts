@@ -22,6 +22,8 @@ export interface IMoreOrLessData {
     subject: string
     answer: number
     image: string
+    /** Ready-made text for the value ("776 BC", "2 g") from the fifth column of the categories that have one - the number is then only used to order the items. */
+    display?: string
 }
 
 interface IMoreOrLessUserGame {
@@ -43,6 +45,8 @@ export class MoreOrLess extends AbstractCommands {
     static instance: MoreOrLess
     private game: IMoreOrLess
     private userGames: Map<string, IMoreOrLessUserGame>
+    /** Whether the values of the category last fetched are calendar years - see fetchGameData and formatValue. */
+    private valuesAreYears = false
     /** The "morgendagens kategori" vote message posted by this process - kept so its buttons can be disabled when someone locks the category with a "Velg MOL" token. */
     private voteMessage?: Message
     /** Historical blacklist, kept as a permanent seed alongside whatever the community votes into `storage.moreOrLess.blacklist` in firebase. */
@@ -102,7 +106,7 @@ export class MoreOrLess extends AbstractCommands {
         })
         if (!dataResponse.ok) return undefined
         const check: any = (await dataResponse.json()).game
-        if (check.data[0].length > 4) return undefined
+        if (check.data[0].length > 5) return undefined
         return { ...game, strings: check.strings }
     }
 
@@ -174,13 +178,22 @@ export class MoreOrLess extends AbstractCommands {
             }
         }
         const data: IMoreOrLessData[] = game.data
-            .filter((item) => item.length <= 4)
+            .filter((item) => item.length <= 5)
             .map((item) => {
-                return { subject: item[0], answer: item[1], image: item[2] }
+                return { subject: item[0], answer: item[1], image: item[2], display: typeof item[4] === 'string' && item[4] ? item[4] : undefined }
             })
+        // Every value a whole number that could be a year: shown as 1996 rather than 1,996
+        this.valuesAreYears = data.length > 0 && data.every((item) => Number.isInteger(item.answer) && item.answer >= 1000 && item.answer <= 2100)
         this.game.strings = game.strings
         this.game.totalEntries = data.length
         return data
+    }
+
+    /** A value as it's shown: the category's own text for it when it has one, else the number (no thousands separator for a year), with its prefix and suffix. */
+    private formatValue(item: IMoreOrLessData): string {
+        if (item.display) return item.display
+        const number = this.valuesAreYears ? String(item.answer) : TextUtils.formatLargeNumber(item.answer)
+        return `${this.game.strings?.valuePrefix ?? ''}${number}${this.game.strings?.valueSuffix ?? ''}`
     }
 
     /** Builds a text block with a small thumbnail alongside it (instead of a full-size image), falling back to plain text if no valid image is given. */
@@ -284,9 +297,7 @@ export class MoreOrLess extends AbstractCommands {
         const container = new SimpleContainer()
         container.addComponent(new TextDisplayBuilder().setContent(`# ${this.game.title}`), 'header')
 
-        const currentText = `**${game.current.subject}** ${this.game.strings?.verb} **${TextUtils.formatLargeNumber(game.current.answer)}${
-            this.game.strings?.valueSuffix ?? ''
-        }** ${this.game.strings?.valueTitle}`
+        const currentText = `**${game.current.subject}** ${this.game.strings?.verb} **${this.formatValue(game.current)}** ${this.game.strings?.valueTitle}`
         const isCurrentImageReal = await FetchUtils.checkImageUrl(game.current.image)
         container.addComponent(this.buildTextWithThumbnail(currentText, isCurrentImageReal ? game.current.image : undefined), 'current')
 
@@ -354,9 +365,7 @@ export class MoreOrLess extends AbstractCommands {
         const msg = completedNow ? 'Du har fullført dagens more or less!' : 'Du tok dessverre feil'
         const showEntryCounter = numTries >= 2 && !!this.game.totalEntries
         const description =
-            `**${game.next.subject}** ${this.game.strings.verb} **${TextUtils.formatLargeNumber(game.next.answer)}${this.game.strings?.valueSuffix ?? ''}** ${
-                this.game.strings.valueTitle
-            }` +
+            `**${game.next.subject}** ${this.game.strings.verb} **${this.formatValue(game.next)}** ${this.game.strings.valueTitle}` +
             `\n\n${msg}\n\n` +
             `Du fikk ${game.correctAnswers}${showEntryCounter ? `/${this.game.totalEntries}` : ''} riktige${rewardMsg}!`
 

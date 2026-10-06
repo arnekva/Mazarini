@@ -39,10 +39,14 @@ interface MolItem {
   subject: string
   answer: number
   image: string
+  /** Some categories (dates, weights, running times...) keep a ready-made text for the value in a fifth column - "776 BC", "2 g" - and use the
+   * number only to put the items in order. When it's there, that's what's shown instead of the number. */
+  display?: string
 }
 interface MolStrings {
   verb: string
   valueTitle: string
+  valuePrefix?: string
   valueSuffix?: string
   buttonMore?: string
   buttonLess?: string
@@ -68,6 +72,8 @@ interface MolSession {
   /** How many items have been taken off the deck so far, and how many it had. */
   drawn?: number
   deckSize?: number
+  /** The values are calendar years (1996) rather than quantities (1 996), so they're shown without digit grouping. */
+  isYear?: boolean
 }
 const sessionPath = (userId: string) => `other/molSessions/${userId}`
 const deckPath = (userId: string) => `other/molSessionItems/${userId}`
@@ -132,18 +138,21 @@ function loadCustom(slug: string): { items: MolItem[]; strings?: MolStrings } | 
   if (!raw) return null
   const game = raw.game ?? (raw as unknown as { data?: unknown[]; strings?: MolStrings })
   const items: MolItem[] = Array.isArray(game?.data)
-    ? game.data
-        .filter((x): x is [string, number, string?] => Array.isArray(x) && x.length <= 4)
-        .map((x) => ({ subject: x[0], answer: x[1], image: x[2] ?? "" }))
+    ? game.data.filter(isRow).map(toItem)
     : []
   return { items, strings: game?.strings }
 }
 
 function apiItems(data: unknown[]): MolItem[] {
-  return data
-    .filter((x): x is [string, number, string?] => Array.isArray(x) && x.length <= 4)
-    .map((x) => ({ subject: x[0], answer: x[1], image: x[2] ?? "" }))
+  return data.filter(isRow).map(toItem)
 }
+
+type Row = [string, number, string?, string?, string?]
+const isRow = (x: unknown): x is Row => Array.isArray(x) && x.length >= 2 && x.length <= 5 && typeof x[0] === "string" && typeof x[1] === "number"
+const toItem = (x: Row): MolItem => ({ subject: x[0], answer: x[1], image: x[2] ?? "", ...(typeof x[4] === "string" && x[4] ? { display: x[4] } : {}) })
+
+/** Every value a whole number that could be a year - "ble grunnlagt i 1,996" reads wrong, so these are shown without a thousands separator. */
+const isYearCategory = (items: MolItem[]) => items.length > 0 && items.every((i) => Number.isInteger(i.answer) && i.answer >= 1000 && i.answer <= 2100)
 
 function shuffle<T>(items: T[]) {
   const copy = [...items]
@@ -180,7 +189,7 @@ export async function getMoreOrLessStatus(user: AuthenticatedDiscordUser) {
   }
 
   return Response.json({
-    category: { title: category.title, description: category.description, image: category.image, strings: category.strings, totalEntries: category.totalEntries },
+    category: { title: category.title, description: category.description, image: category.image, strings: category.strings, totalEntries: category.totalEntries, isYear: session?.isYear },
     unsupported: false,
     stats: stats ?? {},
     hasActiveSession: !!session,
@@ -213,7 +222,8 @@ export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
   if (items.length < 2) return Response.json({ error: "For få elementer i kategorien" }, { status: 502 })
 
   const [current, next, ...deck] = shuffle(items)
-  const session: MolSession = { slug: category.slug, current, next, correctAnswers: 0, drawn: 0, deckSize: deck.length }
+  const isYear = isYearCategory(items)
+  const session: MolSession = { slug: category.slug, current, next, correctAnswers: 0, drawn: 0, deckSize: deck.length, isYear }
   await firebase.updateData({
     [sessionPath(user.id)]: session,
     // Firebase drops an empty array, which is fine: an empty deck is never read from.
@@ -222,7 +232,7 @@ export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
     [`users/${user.id}/moreOrLessSession`]: null,
   })
 
-  return Response.json({ current, next: { subject: next.subject, image: next.image }, correctAnswers: 0, totalEntries: items.length, strings })
+  return Response.json({ current, next: { subject: next.subject, image: next.image }, correctAnswers: 0, totalEntries: items.length, strings, isYear })
 }
 
 export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: boolean) {
@@ -252,7 +262,7 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
     return Response.json({
       correct: true,
       finished: false,
-      current: { subject: session.next.subject, answer: session.next.answer, image: session.next.image },
+      current: { subject: session.next.subject, answer: session.next.answer, image: session.next.image, display: session.next.display },
       next: { subject: newNext.subject, image: newNext.image },
       correctAnswers,
       bestAttempt: best,
@@ -298,6 +308,6 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
     numAttempts: attempts,
     // The item the player guessed wrong on (or the final one, if they just completed the category) -
     // the client never learned its value mid-round, so it needs revealing here.
-    revealedNext: { subject: session.next.subject, answer: session.next.answer, image: session.next.image },
+    revealedNext: { subject: session.next.subject, answer: session.next.answer, image: session.next.image, display: session.next.display },
   })
 }

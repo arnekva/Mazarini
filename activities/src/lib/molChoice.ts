@@ -57,11 +57,31 @@ async function validated(category: MolCategory): Promise<MolCategory | null> {
     if (!custom) return null
     return { ...category, strings: custom.strings ?? category.strings }
   }
-  const res = await fetch(`https://api.moreorless.io/en/games/${category.slug}.json`, { headers: { Accept: "application/json" } })
-  if (!res.ok) return null
-  const game = (await res.json()).game
-  if (!game?.data?.[0] || game.data[0].length > 4) return null
-  return { ...category, strings: game.strings }
+  try {
+    const res = await fetch(`https://api.moreorless.io/en/games/${category.slug}.json`, { headers: { Accept: "application/json" }, next: { revalidate: 3600 } })
+    if (!res.ok) return null
+    const game = (await res.json()).game
+    // Rows are [subject, value, image, ...] with an optional ready-made value text in the fifth column - more than that is a kind we don't know.
+    if (!game?.data?.[0] || game.data[0].length > 5) return null
+    return { ...category, strings: game.strings }
+  } catch {
+    return null
+  }
+}
+
+/** Only the categories that can actually be played - offering one that can't (Historical Happenings, say) just ends in an error after Bekreft.
+ * Every one is checked, a few at a time; the answers are cached for an hour, so this is a second or so for the first person and free for the rest. */
+async function playableCategories(): Promise<MolCategory[]> {
+  const queue = [...(await allCategories())]
+  const playable: MolCategory[] = []
+  await Promise.all(
+    Array.from({ length: 12 }, async () => {
+      for (let category = queue.pop(); category; category = queue.pop()) {
+        if (await validated(category)) playable.push(category)
+      }
+    })
+  )
+  return playable
 }
 
 const nameOf = (user: AuthenticatedDiscordUser) => user.globalName ?? user.username
@@ -74,7 +94,7 @@ export async function getMolChoiceStatus(user: AuthenticatedDiscordUser) {
   ])
   const owned = typeof tokens === "number" && tokens > 0 ? tokens : 0
   // The (long) list is only needed by someone who can actually use it.
-  const categories = owned > 0 && !lockedBy ? (await allCategories()).map((c) => ({ slug: c.slug, title: c.title })).sort((a, b) => a.title.localeCompare(b.title, "nb")) : []
+  const categories = owned > 0 && !lockedBy ? (await playableCategories()).map((c) => ({ slug: c.slug, title: c.title })).sort((a, b) => a.title.localeCompare(b.title, "nb")) : []
   return Response.json({ tokens: owned, lockedBy: lockedBy ? { id: lockedBy.id, name: lockedBy.name } : null, categories })
 }
 

@@ -11,18 +11,21 @@ interface Item {
   subject: string
   answer?: number
   image: string
+  /** Ready-made text for the value ("776 BC", "2 g") in the categories that have one - shown instead of the number. */
+  display?: string
 }
 
 interface MolStrings {
   verb: string
   valueTitle: string
+  valuePrefix?: string
   valueSuffix?: string
   buttonMore?: string
   buttonLess?: string
 }
 
 interface StatusResponse {
-  category: { title: string; description: string; image: string; strings?: MolStrings; totalEntries?: number }
+  category: { title: string; description: string; image: string; strings?: MolStrings; totalEntries?: number; isYear?: boolean }
   unsupported: boolean
   stats: { bestAttempt?: number; numAttempts?: number; completed?: boolean }
   hasActiveSession: boolean
@@ -45,9 +48,13 @@ interface GuessResponse {
   liveReward?: number
 }
 
-function formatValue(n: number | undefined, suffix?: string) {
-  if (n === undefined) return ""
-  return `${n.toLocaleString("no-NO")}${suffix ?? ""}`
+/** A value as it's shown: the category's own text for it when there is one, else the number - without a thousands separator if it's a year -
+ * with the category's prefix ("$") and suffix ("B", " years") around it. */
+function formatValue(item: Item, strings: MolStrings | undefined, isYear: boolean) {
+  if (item.display) return item.display
+  if (item.answer === undefined) return ""
+  const number = isYear ? String(item.answer) : item.answer.toLocaleString("no-NO")
+  return `${strings?.valuePrefix ?? ""}${number}${strings?.valueSuffix ?? ""}`
 }
 
 function relevantValueTitle(verb: string | undefined, valueTitle: string | undefined) {
@@ -57,9 +64,9 @@ function relevantValueTitle(verb: string | undefined, valueTitle: string | undef
 }
 
 /** "<value> <valueTitle>" for an item - what goes after the verb ("Norge har | 5 400 000 innbyggere"). */
-function valueText(item: Item, strings: MolStrings | undefined) {
+function valueText(item: Item, strings: MolStrings | undefined, isYear: boolean) {
   const valueTitle = relevantValueTitle(strings?.verb, strings?.valueTitle)
-  return `${formatValue(item.answer, strings?.valueSuffix)}${valueTitle ? ` ${valueTitle}` : ""}`
+  return `${formatValue(item, strings, isYear)}${valueTitle ? ` ${valueTitle}` : ""}`
 }
 
 interface RoundResult {
@@ -85,12 +92,15 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
   const [startError, setStartError] = useState<string | null>(null)
   const [result, setResult] = useState<RoundResult | null>(null)
   const [roundOver, setRoundOver] = useState(false)
+  // The values are calendar years - shown without digit grouping (1996, not 1 996). Known once a round exists: from the round in progress, or from starting one.
+  const [isYear, setIsYear] = useState(false)
 
   async function loadStatus() {
     const s = await callApi<StatusResponse>("/api/games/more-or-less/status", accessToken)
     setStatus(s)
     setLiveStats({ bestAttempt: s.stats.bestAttempt ?? 0, numAttempts: s.stats.numAttempts ?? 0 })
     setTotalEntries(s.category.totalEntries)
+    setIsYear(!!s.category.isYear)
     if (s.active) {
       setCurrent(s.active.current)
       setNext(s.active.next)
@@ -117,7 +127,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
   async function start() {
     setBusy(true)
     try {
-      const res = await callApi<{ current: Item; next: Item; correctAnswers: number; totalEntries?: number; error?: string }>(
+      const res = await callApi<{ current: Item; next: Item; correctAnswers: number; totalEntries?: number; isYear?: boolean; error?: string }>(
         "/api/games/more-or-less/start",
         accessToken,
         { method: "POST" }
@@ -134,6 +144,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
       setStartError(null)
       setResult(null)
       if (res.totalEntries !== undefined) setTotalEntries(res.totalEntries)
+      setIsYear(!!res.isYear)
     } finally {
       setBusy(false)
     }
@@ -195,7 +206,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
             <div className={styles.itemText}>
               <div className={styles.itemSubject}>{current.subject}</div>
               <div className={styles.itemValue}>
-                {status.category.strings?.verb} {formatValue(current.answer, status.category.strings?.valueSuffix)} {relevantValueTitle(status.category.strings?.verb, status.category.strings?.valueTitle)}
+                {status.category.strings?.verb} {formatValue(current, status.category.strings, isYear)} {relevantValueTitle(status.category.strings?.verb, status.category.strings?.valueTitle)}
               </div>
             </div>
           </div>
@@ -215,7 +226,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
         </>
       )}
 
-      {result && <RoundResultCard result={result} strings={status.category.strings} best={liveStats.bestAttempt} />}
+      {result && <RoundResultCard result={result} strings={status.category.strings} isYear={isYear} best={liveStats.bestAttempt} />}
 
       {roundOver && <button className={styles.startBtn} type="button" disabled={busy} onClick={start}>Prøv igjen</button>}
 
@@ -225,7 +236,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
 }
 
 /** The end of a round at a glance: right or wrong, what the answer was, and what the round was worth. */
-function RoundResultCard({ result, strings, best }: { result: RoundResult; strings: MolStrings | undefined; best: number }) {
+function RoundResultCard({ result, strings, isYear, best }: { result: RoundResult; strings: MolStrings | undefined; isYear: boolean; best: number }) {
   const { revealed, previous } = result
   const won = result.correct
   const verb = strings?.verb ?? "var"
@@ -244,12 +255,12 @@ function RoundResultCard({ result, strings, best }: { result: RoundResult; strin
 
       {revealed && (
         <div className={styles.resultReveal}>
-          <strong>{revealed.subject}</strong> {verb} <span className={styles.resultValue}>{valueText(revealed, strings)}</span>
+          <strong>{revealed.subject}</strong> {verb} <span className={styles.resultValue}>{valueText(revealed, strings, isYear)}</span>
         </div>
       )}
       {relation && previous && (
         <div className={styles.resultCompare}>
-          {relation} {previous.subject} ({valueText(previous, strings)})
+          {relation} {previous.subject} ({valueText(previous, strings, isYear)})
         </div>
       )}
 
