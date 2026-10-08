@@ -289,9 +289,10 @@ export class LootboxCommands extends AbstractCommands {
         }
         let effect: IEffectItem = undefined
         if (Math.random() < this.getChestEffectOdds(quality)) {
-            effect = RandomUtils.getRandomItemFromList(effects.filter((effect) => series.hasColor || !effect.label.includes('color')))
-            // 'deal_or_no_deal' is only a marker in the effects list: what's actually offered is a token of a rolled tier, claimed like any other effect.
-            if (effect.label === 'deal_or_no_deal') effect = DealOrNoDeal.tokenEffect(DealOrNoDeal.rollTier())
+            const pool = [...chestMarkerEffects, ...DondItems.getChestEffects(quality)]
+            effect = RandomUtils.getRandomItemFromList(pool.filter((effect) => series.hasColor || !effect.label.includes('color')))
+            // 'deal_or_no_deal' is only a marker in the effects list: what's actually offered is a token of the chest's own tier, claimed like any other effect.
+            if (effect.label === 'deal_or_no_deal') effect = DealOrNoDeal.tokenEffect(DealOrNoDeal.tierForChest(quality))
             let btn: ButtonBuilder = undefined
             if (effect.label === 'redeal_chest') {
                 btn = reDealChestButton(chestId)
@@ -1366,98 +1367,18 @@ const refreshInventoryBtn = (userId: string, series: string) => {
     )
 }
 
-const effects: Array<IEffectItem> = [
+/** Chest mechanics rather than rewards, so they're offered whatever the chest quality: a re-deal of the chest, and a Deal or No Deal token. */
+const chestMarkerEffects: Array<IEffectItem> = [
     {
         label: 'redeal_chest',
         message: '',
         effect: () => {},
     },
     {
-        label: '1 spin',
-        message: '1 ekstra /spin reward!',
-        effect: (user: MazariniUser) => {
-            user.dailySpins = 1
-            return undefined
-        },
-    },
-    {
-        label: '3x doubled potwins',
-        message: 'at dine tre neste hasjwins dobles!',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 3
-            return undefined
-        },
-    },
-    {
-        label: '10 free rolls',
-        message: '10 gratis /roll!',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 10
-            return undefined
-        },
-    },
-    {
-        label: 'Flipped color odds',
-        message: 'at loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.lootColorsFlipped = true
-            return undefined
-        },
-    },
-    {
-        label: '5x lootbox odds in deathroll',
-        message: 'at du har 5x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.deahtrollLootboxChanceMultiplier = 5
-            return undefined
-        },
-    },
-    {
-        label: '5x doubled pot additions',
-        message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 5
-            return undefined
-        },
-    },
-    {
-        label: '3x guaranteed colors',
-        message: 'at dine neste 3 loot-items har garantert farge (gjelder ikke trade)',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 3
-            return undefined
-        },
-    },
-    // {
-    //     label: '5x guaranteed colors',
-    //     message: 'at dine neste 5 loot-items har garantert farge (gjelder ikke trade)',
-    //     effect: (user: MazariniUser) => {
-    //         user.effects = user.effects ?? defaultEffects
-    //         user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 5
-    //         return undefined
-    //     },
-    // },
-    {
-        label: '3 Blackjack re-deal',
-        message: 'tre ekstra deal på nytt i blackjack!',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 3
-            return undefined
-        },
-    },
-    {
         label: 'deal_or_no_deal',
         message: '',
         effect: () => {},
     },
-    DondItems.chooseMolReward,
 ]
 
 const defaultEffects: IUserEffects = {

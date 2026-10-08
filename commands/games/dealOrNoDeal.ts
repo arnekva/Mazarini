@@ -538,6 +538,13 @@ export class DealOrNoDeal extends AbstractCommands {
         return DonDQuality.Basic
     }
 
+    /** The tier of token a chest of the given quality hands out: basic 10K, premium 20K, elite 50K. */
+    static tierForChest(chestQuality: string): DonDQuality {
+        if (chestQuality.toLowerCase() === 'elite') return DonDQuality.Elite
+        if (chestQuality.toLowerCase() === 'premium') return DonDQuality.Premium
+        return DonDQuality.Basic
+    }
+
     /** Which entry in a user's `dondTokens` a tier is kept under. */
     static tokenTier(quality: DonDQuality): keyof IDondTokens {
         return quality === DonDQuality.Elite ? 'elite' : quality === DonDQuality.Premium ? 'premium' : 'basic'

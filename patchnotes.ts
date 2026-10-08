@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.4.2'
+    public static readonly currentVersion = '36.4.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,9 +27,8 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '* Fikset en feil som gjorde at noen ikke-støttede MoL kategorier ble vist i listen - disse støttes nå.',
-                '* Fikset en feil med formatteringen av årstall i MoL.',
-                '* Fikset en feil som gjorde at valuta-tegn (€£$) ikke ble vist i MoL.',
+                '* Chests: Basic gir nå very low/low effects, Premium medium og Elite high. Velg MOL er kun high.',
+                '* Chests: Re-roll kan komme på alle tiers. Deal or No Deal-token følger chesten: Basic 10K, Premium 20K, Elite 50K.'
             ].join('\n')
         )
         container.addSeparator()

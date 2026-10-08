@@ -180,6 +180,18 @@ export namespace DondItems {
         chooseMolReward,
     ]
 
+    /** Basic chests: very low / low. Premium: medium. Elite: high. */
+    export const getChestEffects = (quality: string): Array<IEffectItem> => {
+        switch (quality.toLowerCase()) {
+            case LootboxQuality.Elite:
+                return highQualityEffects
+            case LootboxQuality.Premium:
+                return mediumQualityEffects
+            default:
+                return [...veryLowQualityEffects, ...lowQualityEffects]
+        }
+    }
+
     export const getRewardsForQuality = (quality: MazariniEventRewardTier) => {
         switch (quality) {
             case MazariniEventRewardTier.VeryLow:
