@@ -23,6 +23,8 @@ export type customGameNames =
     | 'bordersByLength'
     | 'imdbRatingsNorwegian'
     | 'usStatesByPopulation'
+    | 'norwegianGovernments'
+    | 'countryIndependence'
 
 /* 
     Steps for adding a custom game:
@@ -67,6 +69,8 @@ export class CustomMOLHandler {
             bordersByLength: 'borders-by-length.json',
             imdbRatingsNorwegian: 'imdb-ratings-norwegian.json',
             usStatesByPopulation: 'us-states-by-population.json',
+            norwegianGovernments: 'norwegian-governments.json',
+            countryIndependence: 'country-independence.json',
         }
 
         const fileName = fileMap[name]

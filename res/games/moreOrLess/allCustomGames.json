@@ -268,5 +268,23 @@
         "badge": "Custom",
         "slug": "usStatesByPopulation",
         "image": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg"
+    },
+    {
+        "title": "Norske regjeringer – tiltredelse",
+        "description": "Gjett hvilken norsk regjering som tiltrådte først",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "norwegianGovernments",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Norway.svg"
+    },
+    {
+        "title": "Land – uavhengighetsår",
+        "description": "Gjett hvilket land som ble uavhengig først",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "countryIndependence",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/2/22/Earth_Western_Hemisphere_transparent_background.png"
     }
 ]

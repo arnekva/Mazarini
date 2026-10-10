@@ -34,6 +34,8 @@ import cg_citiesByPollutionIndex from "@/data/more-or-less/cities-by-pollution-i
 import cg_bordersByLength from "@/data/more-or-less/borders-by-length.json"
 import cg_imdbRatingsNorwegian from "@/data/more-or-less/imdb-ratings-norwegian.json"
 import cg_usStatesByPopulation from "@/data/more-or-less/us-states-by-population.json"
+import cg_norwegianGovernments from "@/data/more-or-less/norwegian-governments.json"
+import cg_countryIndependence from "@/data/more-or-less/country-independence.json"
 
 interface MolItem {
   subject: string
@@ -127,6 +129,8 @@ const CUSTOM_GAME_DATA: Record<string, unknown> = {
   bordersByLength: cg_bordersByLength,
   imdbRatingsNorwegian: cg_imdbRatingsNorwegian,
   usStatesByPopulation: cg_usStatesByPopulation,
+  norwegianGovernments: cg_norwegianGovernments,
+  countryIndependence: cg_countryIndependence,
 }
 
 export function loadCustomCategory(slug: string) {

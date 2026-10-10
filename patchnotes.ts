@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.4.4'
+    public static readonly currentVersion = '36.4.5'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,12 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            [
-                '* Dond: En 100k Dond finnes nå',
-                '* Chests: Lootbox og chest dukker ikke lenger opp som effects fra chests',
-                '* Chests: 80% sjanse for å få en re-roll. Re-roll re-roller også effects.',
-                '* Chests: Følgende chests er lagt til i /reward: "colored", "super", "fantastic" og "non-dupe"',
-            ].join('\n')
+            ['* MOL: Lands uavhengighet lagt til, fra Thomas', '* MOL: Norske regjeringer lagt til, fra Thomas'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
