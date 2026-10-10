@@ -24,16 +24,6 @@
   color: var(--muted);
 }
 
-.fcBtn {
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0 0 0 8px;
-}
-
 .hand {
   display: flex;
   gap: 6px;

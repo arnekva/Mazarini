@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     // An admin-picked gift (see lib/dailyGift.ts) this person can still choose from the Daily claim page.
     giftWaiting: !!gift && gift.recipients.includes(user.id) && !gift.claims?.[user.id],
     wheelSpinsLeft: dbUser.dailySpins ?? 1,
-    dondTokens: (dbUser.dondTokens?.basic ?? 0) + (dbUser.dondTokens?.premium ?? 0) + (dbUser.dondTokens?.elite ?? 0),
+    dondTokens: (dbUser.dondTokens?.basic ?? 0) + (dbUser.dondTokens?.premium ?? 0) + (dbUser.dondTokens?.elite ?? 0) + (dbUser.dondTokens?.legendary ?? 0),
     // A 4th completion is real (shows as "solved" on its own card) but doesn't earn a reward, so the
     // "X/3" summary caps display at the max rather than showing e.g. "4/3".
     challengesCompleted: Math.min(getChallengesCompletedCount(stats), MAX_REWARDED_CHALLENGES_PER_DAY),

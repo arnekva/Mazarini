@@ -136,6 +136,8 @@ export type GameValuesType = {
             premium: number
             elite: number
         }
+        /** Chance that a freshly opened chest offers a single "Re-roll items" */
+        chestRerollOdds: number
         artPrice: number
     }
     mastermind: {
@@ -418,6 +420,7 @@ export const GameValues: GameValuesType = {
             premium: 0.4,
             elite: 1,
         },
+        chestRerollOdds: 0.8,
         artPrice: 10000,
     },
     mastermind: {

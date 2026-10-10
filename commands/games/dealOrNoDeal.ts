@@ -50,6 +50,7 @@ export enum DonDQuality {
     Basic = 10,
     Premium = 20,
     Elite = 50,
+    Legendary = 100,
 }
 
 export class DealOrNoDeal extends AbstractCommands {
@@ -398,36 +399,39 @@ export class DealOrNoDeal extends AbstractCommands {
         keptCase?: boolean,
         acceptedEffect?: boolean // <-- new parameter
     ) {
+        const defaultStats = {
+            totalGames: 0,
+            timesAcceptedDeal: 0,
+            totalMissedMoney: 0,
+            winningsFromKeepOrSwitch: 0,
+            timesWonLessThan1000: 0,
+            winningsFromAcceptDeal: 0,
+            winsOfOne: 0,
+            keepSwitchBalance: 0,
+            keepWasCorrectChoice: 0,
+            switchWasCorrectChoice: 0,
+            userWasCorrect: 0,
+            acceptedEffect: 0, // <-- new stat
+        }
         if (!user.userStats?.dondStats) {
             if (!user.userStats)
                 user.userStats = {
                     dondStats: {},
                 }
 
-            const defaultStats = {
-                totalGames: 0,
-                timesAcceptedDeal: 0,
-                totalMissedMoney: 0,
-                winningsFromKeepOrSwitch: 0,
-                timesWonLessThan1000: 0,
-                winningsFromAcceptDeal: 0,
-                winsOfOne: 0,
-                keepSwitchBalance: 0,
-                keepWasCorrectChoice: 0,
-                switchWasCorrectChoice: 0,
-                userWasCorrect: 0,
-                acceptedEffect: 0, // <-- new stat
-            }
-
             user.userStats.dondStats = {
                 tenKStats: { ...defaultStats },
                 twentyKStats: { ...defaultStats },
                 fiftyKStats: { ...defaultStats },
+                hundredKStats: { ...defaultStats },
             }
         }
+        // Users who played before the 100K tier existed have no stats for it yet
+        user.userStats.dondStats.hundredKStats = user.userStats.dondStats.hundredKStats ?? { ...defaultStats }
         let gameToTrack = user.userStats.dondStats.tenKStats
         if (quality === DonDQuality.Premium) gameToTrack = user.userStats.dondStats.twentyKStats
         else if (quality === DonDQuality.Elite) gameToTrack = user.userStats.dondStats.fiftyKStats
+        else if (quality === DonDQuality.Legendary) gameToTrack = user.userStats.dondStats.hundredKStats
 
         gameToTrack.totalGames++
         gameToTrack.totalMissedMoney += gameValue - valueWon
@@ -547,6 +551,7 @@ export class DealOrNoDeal extends AbstractCommands {
 
     /** Which entry in a user's `dondTokens` a tier is kept under. */
     static tokenTier(quality: DonDQuality): keyof IDondTokens {
+        if (quality === DonDQuality.Legendary) return 'legendary'
         return quality === DonDQuality.Elite ? 'elite' : quality === DonDQuality.Premium ? 'premium' : 'basic'
     }
 
@@ -578,10 +583,16 @@ const eliteCases = [
     1, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000, 12500, 15000, 17500, 20000, 22500, 25000, 30000, 35000, 40000, 45000, 50000,
 ]
 
+/** Elite's spread doubled (mean ~26K, like elite's ~13K), keeping the same small floor values. */
+const legendaryCases = [
+    1, 5, 10, 25, 50, 100, 250, 500, 1000, 1500, 2000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 60000, 70000, 80000, 90000, 100000,
+]
+
 const allCases = new Map<DonDQuality, number[]>([
     [DonDQuality.Basic, basicCases],
     [DonDQuality.Premium, premiumCases],
     [DonDQuality.Elite, eliteCases],
+    [DonDQuality.Legendary, legendaryCases],
 ])
 
 const dondBtn = (userId: string, id: number, opened: boolean, isPlayersCase: boolean) => {

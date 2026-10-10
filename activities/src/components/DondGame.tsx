@@ -10,7 +10,7 @@ import shared from "./BlackjackGame.module.css"
 import styles from "./DondGame.module.css"
 import { Spectator, SpectatorBar } from "./SpectatorBar"
 
-type Tier = "basic" | "premium" | "elite"
+type Tier = "basic" | "premium" | "elite" | "legendary"
 
 interface GameView {
   /** Changes with every change to the round - compared with the database's to know whether this view is behind. */
@@ -59,7 +59,10 @@ const TIERS: { tier: Tier; label: string }[] = [
   { tier: "basic", label: "10K" },
   { tier: "premium", label: "20K" },
   { tier: "elite", label: "50K" },
+  { tier: "legendary", label: "100K" },
 ]
+
+const NO_TOKENS: Record<Tier, number> = { basic: 0, premium: 0, elite: 0, legendary: 0 }
 
 const NUM_CASES = 26
 
@@ -184,7 +187,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
     callApi<Status>(watchId ? `/api/games/dond?watch=${encodeURIComponent(watchId)}` : "/api/games/dond", accessToken)
       .then((res) => {
         shownRef.current = { version: res.game?.version, chatAt: res.chat?.at(-1)?.at }
-        setStatus((prev) => ({ ...res, tokens: res.tokens ?? prev?.tokens ?? { basic: 0, premium: 0, elite: 0 } }))
+        setStatus((prev) => ({ ...res, tokens: res.tokens ?? prev?.tokens ?? NO_TOKENS }))
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Noe gikk galt"))
   }, [accessToken, watchId])
@@ -207,7 +210,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
       const res = await callApi<Status>(watchId ? `/api/games/dond?watch=${encodeURIComponent(watchId)}` : "/api/games/dond", accessToken)
       if (busyRef.current || actSeqRef.current !== seq) return
       shownRef.current = { version: res.game?.version, chatAt: res.chat?.at(-1)?.at }
-      setStatus((prev) => ({ ...res, tokens: res.tokens ?? prev?.tokens ?? { basic: 0, premium: 0, elite: 0 } }))
+      setStatus((prev) => ({ ...res, tokens: res.tokens ?? prev?.tokens ?? NO_TOKENS }))
     },
     delayMs: watchId ? WATCH_POLL_MS : PLAYER_POLL_MS,
     paused: () => busyRef.current,
@@ -225,7 +228,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
       if ("game" in res) shownRef.current = res.game ? { ...shownRef.current, version: res.game.version } : {}
       setStatus((prev) => ({
         ...prev,
-        tokens: res.tokens ?? prev?.tokens ?? { basic: 0, premium: 0, elite: 0 },
+        tokens: res.tokens ?? prev?.tokens ?? NO_TOKENS,
         game: "game" in res ? res.game ?? null : prev?.game ?? null,
         // A finished round's chat is dropped along with the round (the recap post already has it).
         ...(("game" in res ? res.game : prev?.game) ? {} : { chat: [] }),

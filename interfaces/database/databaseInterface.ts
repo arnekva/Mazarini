@@ -159,6 +159,7 @@ export interface IDondTokens {
     basic?: number
     premium?: number
     elite?: number
+    legendary?: number
 }
 
 export interface ICCGUserData {
@@ -398,6 +399,8 @@ export interface ILootbox {
     validFrom?: Date
     validTo?: Date
     rewardOnly?: boolean
+    /** Chests only: the chest offers items the opener is missing (effects in the slots there are no missing items for), instead of rolling by the probabilities. */
+    nonDupe?: boolean
 }
 
 export interface ILootboxDistribution {
@@ -621,6 +624,7 @@ export interface DonDStats {
     tenKStats?: DealOrNoDealStats
     twentyKStats?: DealOrNoDealStats
     fiftyKStats?: DealOrNoDealStats
+    hundredKStats?: DealOrNoDealStats
 }
 export type UserStats = {
     chipsStats?: ChipsStats

@@ -1,4 +1,3 @@
-import { isAdminUser } from "./admin"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { Card, drawCard, freshShuffledDeck, handValue, isBlackjack } from "./blackjack"
@@ -106,8 +105,6 @@ interface BlackjackLobby {
   logRef?: LiveMessageRef
   roundsPlayed?: number
   totals?: Record<string, { name: string; net: number }>
-  /** Admin nudge (see forceBadDealerDraw) - never part of any view. */
-  forcedDealerCard?: true
   createdAt: number
   updatedAt: number
 }
@@ -176,7 +173,6 @@ function normalizeLobby(raw: any): BlackjackLobby {
     // `rounds` is what a table opened before the totals existed kept instead: one text per round.
     ...(raw.roundsPlayed || raw.rounds ? { roundsPlayed: raw.roundsPlayed ?? Object.values(raw.rounds).length } : {}),
     ...(raw.totals ? { totals: raw.totals } : {}),
-    ...(raw.forcedDealerCard ? { forcedDealerCard: true as const } : {}),
     createdAt: raw.createdAt ?? Date.now(),
     updatedAt: raw.updatedAt ?? Date.now(),
   }
@@ -600,24 +596,6 @@ function activeHandIndex(player: BlackjackPlayer): number {
   return player.hands.findIndex((h) => h.status === "playing")
 }
 
-/** Draws the dealer's next hit card - normally random. If a nudge is armed for this table, it's
- * consumed right here either way (one shot, never repeats) - but it only actually changes anything
- * when the total's already 12+, where a high card is unambiguously bad for the dealer. Below that,
- * a high card would just lock in a strong stand instead, so it's left fully random on purpose.
- * Pure/sync, so it can run inside a lobby transaction - the "is a nudge armed" flag lives on the lobby itself
- * (see forceBadDealerDraw), and resolveDealer clears it there once it's been used. */
-function drawDealerCard(deck: Card[], dealerHand: Card[], forcedAvailable: boolean): { card: Card; remaining: Card[]; consumedForced: boolean } {
-  if (forcedAvailable && handValue(dealerHand) >= 12) {
-    const highRanks = ["10", "J", "Q", "K"]
-    const rank = highRanks[Math.floor(Math.random() * highRanks.length)]
-    const suits: Card["suit"][] = ["♠", "♥", "♦", "♣"]
-    const suit = suits[Math.floor(Math.random() * suits.length)]
-    return { card: { rank, suit }, remaining: deck, consumedForced: true }
-  }
-  const drawn = drawCard(deck)
-  return { ...drawn, consumedForced: false }
-}
-
 /** Dealer draws to 17 (stands on all 17s), every hand still in gets scored, and win/push payouts are
  * computed - never applied here directly (this is called from inside a lobby transaction, which can
  * run more than once; crediting chips as a side effect of the callback itself would double-pay on a
@@ -627,8 +605,6 @@ function resolveDealer(lobby: BlackjackLobby): { lobby: BlackjackLobby; chipDelt
   let deck = lobby.deck
   let dealerHand = lobby.dealerHand
   lobby.dealerHidden = false
-  const forcedAvailable = !!lobby.forcedDealerCard
-  let consumedForced = false
 
   const anyoneStillIn = lobby.playerOrder.some((id) => {
     const p = lobby.players[id]
@@ -636,10 +612,9 @@ function resolveDealer(lobby: BlackjackLobby): { lobby: BlackjackLobby; chipDelt
   })
   if (anyoneStillIn) {
     while (handValue(dealerHand) < 17) {
-      const drawn = drawDealerCard(deck, dealerHand, forcedAvailable && !consumedForced)
+      const drawn = drawCard(deck)
       dealerHand = [...dealerHand, drawn.card]
       deck = drawn.remaining
-      if (drawn.consumedForced) consumedForced = true
     }
   }
 
@@ -687,7 +662,6 @@ function resolveDealer(lobby: BlackjackLobby): { lobby: BlackjackLobby; chipDelt
   delete lobby.redealVote
   delete lobby.redealDeniedFor
   delete lobby.potRefunds
-  if (consumedForced) delete lobby.forcedDealerCard
   return {
     lobby: {
       ...lobby,
@@ -1139,19 +1113,6 @@ export async function spectateBlackjackLobby(instanceId: string, lobbyId: string
     touchPresence(firebase, instanceId, lobbyId, user.id),
   ])
   if (!lobby) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
-  return Response.json(await publicView(firebase, instanceId, lobby, user.id))
-}
-
-/** Admin-only. Arms a guaranteed dealer bust for this table's next auto-resolve (drawDealerCard
- * picks whatever sequence of cards actually forces it, however many that takes - see there).
- * Available whether the admin is playing or just spectating, any time a round is live. Returns the
- * same plain view everyone else gets either way - nothing about this is visible anywhere, to anyone, ever. */
-export async function forceBadDealerDraw(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
-  const firebase = new FirebaseHelper()
-  const lobby = isAdminUser(user.id)
-    ? await updateLobby(firebase, instanceId, lobbyId, (current) => ({ ...current, forcedDealerCard: true }))
-    : await readLobby(firebase, instanceId, lobbyId)
-  if (!lobby) return Response.json({ closed: true }, { status: 404 })
   return Response.json(await publicView(firebase, instanceId, lobby, user.id))
 }
 

@@ -4,7 +4,6 @@ import { callApi } from "@/lib/apiClient"
 import { recommendMove } from "@/lib/blackjackStrategy"
 import { BlackjackAdvice } from "./BlackjackAdvice"
 import adviceStyles from "./BlackjackAdvice.module.css"
-import { isAdminUser } from "@/lib/admin"
 import { proxyImageUrl } from "@/lib/imgProxy"
 import { useLivePolling } from "@/lib/liveSignal"
 import { useDiscord } from "@/providers/discordProvider"
@@ -319,8 +318,7 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
       | "voteRedeal"
       | "setBet"
       | "voteBet"
-      | "ownChips"
-      | "fc",
+      | "ownChips",
     extra?: Record<string, unknown>
   ) {
     if (!instanceId || busy) return
@@ -537,11 +535,6 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
       <div className={styles.dealerRow}>
         <span className={styles.label}>
           Dealer {table.dealer.value !== undefined ? `(${table.dealer.value})` : ""}
-          {isAdminUser(discordUser?.id) && table.status === "playing" && (
-            <button className={styles.fcBtn} type="button" onClick={() => action("fc")} aria-hidden="true" tabIndex={-1}>
-              FC
-            </button>
-          )}
         </span>
         <div className={styles.hand}>
           {table.dealer.hand.map((c, i) => (

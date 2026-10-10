@@ -41,6 +41,7 @@ import { swCCG } from '../ccg/cards/swCCG'
 import { CCGCard } from '../ccg/ccgInterface'
 import { DondItems } from '../games/content/dondItems'
 import { DealOrNoDeal } from '../games/dealOrNoDeal'
+import { SpecialChests } from './specialChests'
 
 interface IPendingTrade {
     userId: string
@@ -56,6 +57,10 @@ interface IPendingChest {
     items: Map<string, IUserLootItem>
     isCCG: boolean
     effect?: IEffectItem
+    /** Effects offered in place of items, by button id - see buildNonDupeOffer */
+    slotEffects?: Map<string, IEffectItem>
+    /** Set once the items (and effect) have been re-rolled - a chest can only be re-rolled once */
+    hasRerolled?: boolean
     message?: InteractionResponse<boolean> | Message<boolean>
     buttons?: ActionRowBuilder<ButtonBuilder>
 }
@@ -183,19 +188,31 @@ export class LootboxCommands extends AbstractCommands {
         const series = this.resolveLootSeries(user, interaction, pendingChest)
         const seriesObj = await this.getSeriesOrDefault(series)
 
-        const box = await this.resolveLootbox(quality)
+        const box = await this.resolveLootbox(quality, false, true)
+        if (!box) return this.messageHelper.replyToInteraction(interaction, `Fant ingen chest med kvalitet "${quality}". Prøv igjen.`, { hasBeenDefered: true })
+        // Special chests are rewards only - typing one into /loot chest must not get it for the price of a basic one
+        if (interaction.isChatInputCommand() && SpecialChests.isSpecial(quality))
+            return this.messageHelper.replyToInteraction(interaction, 'Den chesten kan ikke kjøpes', { ephemeral: true, hasBeenDefered: true })
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
-        const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
-        sh.registerPurchase(box, true, interaction.isChatInputCommand())
+        // A re-roll is the same chest, not a new one
+        if (!pendingChest) {
+            const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
+            sh.registerPurchase(box, true, interaction.isChatInputCommand())
+        }
 
-        const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
-        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
-        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
-        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
+        let chestItems: IUserLootItem[] = new Array<IUserLootItem>()
+        let slotEffects: IEffectItem[] = []
+        if (box.nonDupe) {
+            const offer = this.buildNonDupeOffer(seriesObj, user)
+            chestItems = offer.items
+            slotEffects = offer.effects
+        } else {
+            for (let i = 0; i < 3; i++) chestItems.push(this.calculateRewardItem(box, seriesObj, user))
+        }
 
         if (seriesObj.hasColor) this.database.updateUser(user) //update in case of effect change
         const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
-        this.revealLootChest(interaction, chestItems, quality, seriesObj, existingChestId)
+        this.revealLootChest(interaction, chestItems, quality, seriesObj, existingChestId, slotEffects)
     }
 
     private async openAndRegisterLootPack(interaction: ChatInteraction | BtnInteraction) {
@@ -252,8 +269,17 @@ export class LootboxCommands extends AbstractCommands {
         else if (interaction.isButton()) return interaction.customId.split(';')[2] ?? 'basic'
     }
 
+    /** "Basic loot chest", or "Arne chest" for one full of plain commons. A chest with nothing but commons (any color) also gets a kekw_boom. */
+    private chestTitle(items: IUserLootItem[], quality: string, accessPoint: ChatInteraction | BtnInteraction) {
+        const type = this.isArneChest(items) ? 'Arne' : SpecialChests.displayName(quality) + ' loot'
+        const onlyCommons = items.length > 0 && items.every((item) => item.rarity === ItemRarity.Common)
+        const boom = onlyCommons ? EmojiHelper.getEmoji('kekw_boom', accessPoint) : undefined
+        return `${type} chest${boom?.emojiObject ? ` ${boom.id}` : ''}`
+    }
+
+    /** A chest with no items at all (a Non-dupe chest for someone who has everything) is not an Arne chest. */
     private isArneChest(items: IUserLootItem[]) {
-        return items.every((item) => item.rarity === ItemRarity.Common && item.color === ItemColor.None)
+        return items.length > 0 && items.every((item) => item.rarity === ItemRarity.Common && item.color === ItemColor.None)
     }
 
     private async revealLootChest(
@@ -261,11 +287,12 @@ export class LootboxCommands extends AbstractCommands {
         items: IUserLootItem[],
         quality: string,
         series: ILootSeries,
-        existingChestId?: string
+        existingChestId?: string,
+        slotEffects: IEffectItem[] = []
     ) {
         const chestEmoji = await EmojiHelper.getEmoji('chest_closed', interaction)
-        const chestType = this.isArneChest(items) ? 'Arne' : TextUtils.capitalizeFirstLetter(quality) + ' loot'
-        const embed = EmbedUtils.createSimpleEmbed(`${chestType} chest`, `Hvilken lootbox vil du åpne og beholde?`).setThumbnail(
+        const prompt = items.length === 0 ? 'Du har alt! Hvilken effekt vil du ha?' : 'Hvilken lootbox vil du åpne og beholde?'
+        const embed = EmbedUtils.createSimpleEmbed(this.chestTitle(items, quality, interaction), prompt).setThumbnail(
             `https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`
         )
         const chestId = existingChestId ?? randomUUID()
@@ -287,24 +314,31 @@ export class LootboxCommands extends AbstractCommands {
             if (series.hasColor) btn.setLabel(TextUtils.capitalizeFirstLetter(item.rarity))
             buttons.addComponents(btn)
         }
+        // Effects standing in for items (Non-dupe chests with little or nothing left to give) - one button each, picked like an item
+        const chestSlotEffects = new Map<string, IEffectItem>()
+        slotEffects.forEach((slotEffect, i) => {
+            const slotId = `effect${i}`
+            chestSlotEffects.set(slotId, slotEffect)
+            buttons.addComponents(lootChestButton(chestId, slotId).setLabel(slotEffect.label).setStyle(ButtonStyle.Success))
+        })
         let effect: IEffectItem = undefined
         if (Math.random() < this.getChestEffectOdds(quality)) {
             const pool = [...chestMarkerEffects, ...DondItems.getChestEffects(quality)]
             effect = RandomUtils.getRandomItemFromList(pool.filter((effect) => series.hasColor || !effect.label.includes('color')))
             // 'deal_or_no_deal' is only a marker in the effects list: what's actually offered is a token of the chest's own tier, claimed like any other effect.
             if (effect.label === 'deal_or_no_deal') effect = DealOrNoDeal.tokenEffect(DealOrNoDeal.tierForChest(quality))
-            let btn: ButtonBuilder = undefined
-            if (effect.label === 'redeal_chest') {
-                btn = reDealChestButton(chestId)
-            } else btn = lootChestButton(chestId, 'effect').setLabel(effect.label)
-            buttons.addComponents(btn)
+            buttons.addComponents(lootChestButton(chestId, 'effect').setLabel(effect.label))
         }
+        // Only the first deal can offer a re-roll - once it's been used (or wasn't offered) it never shows up again
+        if (!existingChestId && Math.random() < GameValues.loot.chestRerollOdds) buttons.addComponents(reDealChestButton(chestId))
         let pendingChest: IPendingChest = undefined
         if (existingChestId) {
             pendingChest = this.pendingChests.get(existingChestId)
             pendingChest.buttons = buttons
             pendingChest.items = chestItems
             pendingChest.effect = effect
+            pendingChest.slotEffects = chestSlotEffects
+            pendingChest.hasRerolled = true
             await pendingChest.message.edit({ embeds: [embed], components: [buttons] })
         } else {
             const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, [buttons])
@@ -315,6 +349,7 @@ export class LootboxCommands extends AbstractCommands {
                 items: chestItems,
                 isCCG: false,
                 effect: effect,
+                slotEffects: chestSlotEffects,
                 message: msg,
                 buttons: buttons,
             }
@@ -443,8 +478,7 @@ export class LootboxCommands extends AbstractCommands {
         const deferred = await this.messageHelper.deferReply(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const chestEmoji = await EmojiHelper.getEmoji('chest_open', interaction)
-        const chestType = this.isArneChest(Array.from(pendingChest.items.values())) ? 'Arne' : TextUtils.capitalizeFirstLetter(pendingChest.quality) + ' loot'
-        const embed = EmbedUtils.createSimpleEmbed(`${chestType} chest`, `Åpner lootboxen!`).setThumbnail(
+        const embed = EmbedUtils.createSimpleEmbed(this.chestTitle(Array.from(pendingChest.items.values()), pendingChest.quality, interaction), `Åpner lootboxen!`).setThumbnail(
             `https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`
         )
         const disabledBtns = pendingChest.buttons.components.map((btn) => {
@@ -455,8 +489,10 @@ export class LootboxCommands extends AbstractCommands {
         })
         const btnRow = new ActionRowBuilder<ButtonBuilder>().addComponents(disabledBtns)
         interaction.message.edit({ embeds: [embed], components: [btnRow] })
-        if (interaction.customId.split(';')[2] === 'effect') {
-            const effect = pendingChest.effect
+        const choice = interaction.customId.split(';')[2]
+        const slotEffect = pendingChest.slotEffects?.get(choice)
+        if (choice === 'effect' || slotEffect) {
+            const effect = slotEffect ?? pendingChest.effect
             await effect.effect(user, this.database)
             await effect.syncClientCache?.(this.client, user)
 
@@ -503,8 +539,9 @@ export class LootboxCommands extends AbstractCommands {
         return chest.items.get(chestId)
     }
 
-    private async resolveLootbox(quality: string, isPack: boolean = false): Promise<ILootbox> {
+    private async resolveLootbox(quality: string, isPack: boolean = false, isChest: boolean = false): Promise<ILootbox> {
         const boxes = isPack ? await this.getLootpacks() : await this.getLootboxes()
+        if (isChest && SpecialChests.isSpecial(quality)) return SpecialChests.resolve(quality, boxes)
         return boxes.find((box) => box.name === quality)
     }
 
@@ -534,7 +571,8 @@ export class LootboxCommands extends AbstractCommands {
     private calculateRewardItem(box: ILootbox, series: ILootSeries, user: MazariniUser) {
         const itemRoll = Math.random()
         let colored = Math.random() < box.probabilities.color
-        if (series.hasColor && (user.effects?.positive?.guaranteedLootColor ?? 0) > 0) {
+        // A charge of "guaranteed color" is only spent when it's needed - not on an item that was colored anyway (a Color chest, say)
+        if (!colored && series.hasColor && (user.effects?.positive?.guaranteedLootColor ?? 0) > 0) {
             colored = true
             user.effects.positive.guaranteedLootColor -= 1
         }
@@ -549,6 +587,35 @@ export class LootboxCommands extends AbstractCommands {
         } else {
             return this.getRandomItemForRarity(ItemRarity.Common, series, colored, user)
         }
+    }
+
+    /** Every item the user doesn't own yet, in every color the series has (unobtainables don't count). */
+    private findMissingItems(series: ILootSeries, user: MazariniUser): IUserLootItem[] {
+        const colors = series.hasColor ? [ItemColor.None, ItemColor.Silver, ItemColor.Gold, ItemColor.Diamond] : [ItemColor.None]
+        const missing: IUserLootItem[] = []
+        for (const rarity of [ItemRarity.Common, ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary]) {
+            for (const name of this.getRarityItems(series, rarity) ?? []) {
+                for (const color of colors) {
+                    const item: IUserLootItem = { name, series: series.name, rarity, color, amount: 1, isCCG: series.isCCG ?? false }
+                    if (!this.userOwnsItem(user, item)) missing.push(item)
+                }
+            }
+        }
+        return missing
+    }
+
+    /** What a Non-dupe chest offers: up to 3 random items the user is missing. Every slot there's no missing item for is an effect from the high pool instead -
+     * so someone missing two items gets those two plus an effect, and someone with everything gets three effects. */
+    private buildNonDupeOffer(series: ILootSeries, user: MazariniUser): { items: IUserLootItem[]; effects: IEffectItem[] } {
+        const items = RandomUtils.shuffleList(this.findMissingItems(series, user)).slice(0, 3)
+        const effectPool = DondItems.getChestEffects(LootboxQuality.Elite).filter((effect) => series.hasColor || !effect.label.includes('color'))
+        const effects = RandomUtils.shuffleList(effectPool).slice(0, 3 - items.length)
+        return { items, effects }
+    }
+
+    private userOwnsItem(user: MazariniUser, item: IUserLootItem) {
+        const owned = (user.loot?.[item.series]?.inventory?.[item.rarity]?.items as IUserLootItem[]) ?? []
+        return owned.some((ownedItem) => this.equalItems(ownedItem, item) && ownedItem.amount > 0)
     }
 
     private getRandomItemForRarity(rarity: ItemRarity, series: ILootSeries, colored: boolean, user: MazariniUser): IUserLootItem {
@@ -1205,7 +1272,8 @@ export class LootboxCommands extends AbstractCommands {
         const deferred = await this.messageHelper.deferUpdate(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const pendingChest = this.getPendingChest(interaction)
-        if (pendingChest.userId === interaction.user.id) {
+        if (pendingChest?.userId === interaction.user.id && !pendingChest.hasRerolled) {
+            pendingChest.hasRerolled = true // before the async work, so a double click can't re-roll twice
             this.openAndRegisterLootChest(interaction, pendingChest)
         }
     }
@@ -1367,13 +1435,8 @@ const refreshInventoryBtn = (userId: string, series: string) => {
     )
 }
 
-/** Chest mechanics rather than rewards, so they're offered whatever the chest quality: a re-deal of the chest, and a Deal or No Deal token. */
+/** Not a reward from one of the tier pools, so it's offered whatever the chest quality: a Deal or No Deal token (of the chest's own tier). */
 const chestMarkerEffects: Array<IEffectItem> = [
-    {
-        label: 'redeal_chest',
-        message: '',
-        effect: () => {},
-    },
     {
         label: 'deal_or_no_deal',
         message: '',

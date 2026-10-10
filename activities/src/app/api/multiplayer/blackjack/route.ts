@@ -5,7 +5,6 @@ import {
   postBlackjackChat,
   dealBlackjackRound,
   doubleBlackjack,
-  forceBadDealerDraw,
   getBlackjackLobbyStatus,
   hitBlackjack,
   joinBlackjackLobby,
@@ -72,10 +71,6 @@ export async function POST(request: Request) {
     if (action === "setBet") return await adjustBlackjackBet(instanceId, lobbyId, user, buyIn, !!allIn)
     if (action === "ownChips") return await playOnWithOwnChips(instanceId, lobbyId, user)
     if (action === "voteBet") return await voteBlackjackBet(instanceId, lobbyId, user, !!approve)
-    // Not admin-gated here on purpose - forceBadDealerDraw itself silently no-ops for anyone whose
-    // id doesn't match, and still returns the normal table view either way, so this endpoint gives
-    // nothing away to a non-admin poking at it.
-    if (action === "fc") return await forceBadDealerDraw(instanceId, lobbyId, user)
     return Response.json({ error: "Ukjent handling" }, { status: 400 })
   } catch (err) {
     return debugError(err)

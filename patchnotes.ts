@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.4.3'
+    public static readonly currentVersion = '36.4.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,8 +27,10 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '* Chests: Basic gir nå very low/low effects, Premium medium og Elite high. Velg MOL er kun high.',
-                '* Chests: Re-roll kan komme på alle tiers. Deal or No Deal-token følger chesten: Basic 10K, Premium 20K, Elite 50K.'
+                '* Dond: En 100k Dond finnes nå',
+                '* Chests: Lootbox og chest dukker ikke lenger opp som effects fra chests',
+                '* Chests: 80% sjanse for å få en re-roll. Re-roll re-roller også effects.',
+                '* Chests: Følgende chests er lagt til i /reward: "colored", "super", "fantastic" og "non-dupe"',
             ].join('\n')
         )
         container.addSeparator()

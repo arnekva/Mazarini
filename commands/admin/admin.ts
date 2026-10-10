@@ -33,6 +33,7 @@ import { MentionUtils } from '../../utils/mentionUtils'
 import { MessageUtils } from '../../utils/messageUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { DealOrNoDeal, DonDQuality } from '../games/dealOrNoDeal'
+import { SpecialChests } from '../store/specialChests'
 import { MoreOrLess } from '../games/moreOrLess'
 import { LootboxCommands, LootType } from '../store/lootboxCommands'
 
@@ -317,13 +318,13 @@ export class Admin extends AbstractCommands {
     private rewardUserWithLoot(interaction: ChatInteraction | BtnInteraction, pendingReward: IReward, user: User) {
         const type = pendingReward.type as LootType
         const lootButton = LootboxCommands.getLootRewardButton(user.id, pendingReward.quality, type, undefined, pendingReward.series)
-        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${pendingReward.quality} loot ${type} på grunn av *${
+        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${SpecialChests.displayName(pendingReward.quality)} loot ${type} på grunn av *${
             pendingReward.reason
         }*`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
         this.messageHelper.replyToInteraction(interaction, embed, undefined, [lootButton])
         this.messageHelper.sendLogMessage(
-            `${user.username} har mottatt en reward på en ${pendingReward.quality} loot ${type} på grunn av *${
+            `${user.username} har mottatt en reward på en ${SpecialChests.displayName(pendingReward.quality)} loot ${type} på grunn av *${
                 pendingReward.reason
             }*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `
         )
@@ -334,9 +335,8 @@ export class Admin extends AbstractCommands {
         let boxes = cmd === 'pack' ? await this.client.database.getLootpacks() : await this.client.database.getLootboxes()
         boxes = boxes.filter((box) => LootboxCommands.lootboxIsValid(box))
         const price = (box: ILootbox) => (cmd === 'pack' ? `${box.price} shards` : `${(cmd === 'chest' ? 2 : 1) * (box.price / 1000)}K`)
-        interaction.respond(
-            boxes.filter((box) => !box.rewardOnly).map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${price(box)}`, value: box.name }))
-        )
+        const choices = boxes.filter((box) => !box.rewardOnly).map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${price(box)}`, value: box.name }))
+        interaction.respond(cmd === 'chest' ? [...choices, ...SpecialChests.autocompleteChoices()] : choices)
     }
 
     private async lootSeriesAutocomplete(interaction: ATCInteraction) {
@@ -352,6 +352,7 @@ export class Admin extends AbstractCommands {
             { name: 'Basic 10K', value: '10' },
             { name: 'Premium 20K', value: '20' },
             { name: 'Elite 50K', value: '50' },
+            { name: 'Legendary 100K', value: '100' },
         ])
     }
 

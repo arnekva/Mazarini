@@ -43,7 +43,7 @@ interface DondGame {
   result?: DondResult
 }
 
-const TIERS: DondTier[] = ["basic", "premium", "elite"]
+const TIERS: DondTier[] = ["basic", "premium", "elite", "legendary"]
 const NUM_CASES = 26
 const MAX_ROUNDS = 10
 
@@ -80,7 +80,12 @@ async function writeGame(firebase: FirebaseHelper, userId: string, game: DondGam
 }
 
 function tokensOf(dbUser: any): Record<DondTier, number> {
-  return { basic: dbUser.dondTokens?.basic ?? 0, premium: dbUser.dondTokens?.premium ?? 0, elite: dbUser.dondTokens?.elite ?? 0 }
+  return {
+    basic: dbUser.dondTokens?.basic ?? 0,
+    premium: dbUser.dondTokens?.premium ?? 0,
+    elite: dbUser.dondTokens?.elite ?? 0,
+    legendary: dbUser.dondTokens?.legendary ?? 0,
+  }
 }
 
 /** What the client gets. Closed cases' values, and the player's own case, stay hidden until the game is over. */
@@ -142,8 +147,8 @@ function updatedStats(
     userWasCorrect: 0,
     acceptedEffect: 0,
   })
-  const stats = dbUser.userStats?.dondStats ?? { tenKStats: defaultStats(), twentyKStats: defaultStats(), fiftyKStats: defaultStats() }
-  const key = tier === "elite" ? "fiftyKStats" : tier === "premium" ? "twentyKStats" : "tenKStats"
+  const stats = dbUser.userStats?.dondStats ?? { tenKStats: defaultStats(), twentyKStats: defaultStats(), fiftyKStats: defaultStats(), hundredKStats: defaultStats() }
+  const key = tier === "legendary" ? "hundredKStats" : tier === "elite" ? "fiftyKStats" : tier === "premium" ? "twentyKStats" : "tenKStats"
   const s = { ...defaultStats(), ...stats[key] }
 
   s.totalGames++

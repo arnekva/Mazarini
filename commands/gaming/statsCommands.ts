@@ -115,19 +115,21 @@ export class StatsCommands extends AbstractCommands {
             if (n === 'tenKStats') return { label: '10K stats', quality: DonDQuality.Basic }
             if (n === 'twentyKStats') return { label: '20K stats', quality: DonDQuality.Premium }
             if (n === 'fiftyKStats') return { label: '50K stats', quality: DonDQuality.Elite }
+            if (n === 'hundredKStats') return { label: '100K stats', quality: DonDQuality.Legendary }
         }
         const text1 = new TextDisplayBuilder().setContent(['# Deal or no Deal', `## ${username}`].join('\n'))
         const sortedStats: DonDStats = {
             tenKStats: dondStats.tenKStats,
             twentyKStats: dondStats.twentyKStats,
             fiftyKStats: dondStats.fiftyKStats,
+            hundredKStats: dondStats.hundredKStats,
         }
         container.addComponent(text1, 'header')
         Object.entries(sortedStats).forEach(([key, value]) => {
             const props = transformToDondProps(key as keyof DonDStats)
             const header = props.label
             const stats = dondStats[key as keyof DonDStats]
-            if (stats.totalGames > 0) {
+            if (stats?.totalGames > 0) {
                 const userAverageWin = Math.round((stats.winningsFromAcceptDeal + stats.winningsFromKeepOrSwitch) / stats.totalGames)
 
                 const text = new TextDisplayBuilder().setContent(
@@ -155,6 +157,8 @@ export class StatsCommands extends AbstractCommands {
                 return 5757
             case DonDQuality.Elite:
                 return 13087
+            case DonDQuality.Legendary:
+                return 26171
             case DonDQuality.Basic:
             default:
                 return 2760

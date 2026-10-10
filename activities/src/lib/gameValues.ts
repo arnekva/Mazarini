@@ -52,16 +52,17 @@ export const dondValues = {
   offerPerRound: 0.05,
 }
 
-export type DondTier = "basic" | "premium" | "elite"
+export type DondTier = "basic" | "premium" | "elite" | "legendary"
 
 /** Case values per tier - 26 cases each, shuffled per game. */
 export const DOND_CASES: Record<DondTier, number[]> = {
   basic: [1, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 9000, 10000],
   premium: [1, 5, 10, 25, 50, 100, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12500, 14000, 16000, 18000, 20000],
   elite: [1, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000, 12500, 15000, 17500, 20000, 22500, 25000, 30000, 35000, 40000, 45000, 50000],
+  legendary: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 1500, 2000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 60000, 70000, 80000, 90000, 100000],
 }
 
-export const DOND_TIER_K: Record<DondTier, number> = { basic: 10, premium: 20, elite: 50 }
+export const DOND_TIER_K: Record<DondTier, number> = { basic: 10, premium: 20, elite: 50, legendary: 100 }
 
 // Mirrors general/values.ts (blackjack) in the bot repo.
 export const blackjackValues = {
