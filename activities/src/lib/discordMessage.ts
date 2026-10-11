@@ -1,6 +1,9 @@
 import { devAuthEnabled, discordBotToken } from "./env"
 import { ANNOUNCE_CHANNEL_ID } from "./gameValues"
 
+/** The custom :kekw: emoji (server "Mazarini Emoji 1", which the bot is in). A custom emoji in a raw message has to be written out with its id, the bot's emoji cache is not available here. */
+export const KEKW_EMOJI = "<:kekw:1546810866232463361>"
+
 // Raw Discord REST calls using the bot token - same identity the bot itself posts as, so a button
 // posted from here is handled by the bot's already-registered OPEN_LOOT interaction handler.
 /** Returns whether Discord accepted the message - callers that have somewhere else to try (see resolveAnnounceChannel) can fall back. */

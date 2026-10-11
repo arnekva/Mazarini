@@ -10,11 +10,16 @@ export function TypeaheadInput({
   onSubmit,
   disabled,
   placeholder,
+  onSkip,
+  skipLabel = "Hopp over",
 }: {
   suggestions: string[]
   onSubmit: (value: string) => void
   disabled?: boolean
   placeholder?: string
+  /** When given, a button next to the guess button that gives this one up instead of guessing. */
+  onSkip?: () => void
+  skipLabel?: string
 }) {
   const [value, setValue] = useState("")
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -67,9 +72,20 @@ export function TypeaheadInput({
           ))}
         </div>
       )}
-      <button className={styles.submitBtn} type="button" disabled={disabled || !value.trim()} onClick={submit}>
-        Gjett
-      </button>
+      {onSkip ? (
+        <div className={styles.actions}>
+          <button className={`${styles.submitBtn} ${styles.inRow}`} type="button" disabled={disabled || !value.trim()} onClick={submit}>
+            Gjett
+          </button>
+          <button className={styles.skipBtn} type="button" disabled={disabled} onClick={onSkip}>
+            {skipLabel}
+          </button>
+        </div>
+      ) : (
+        <button className={styles.submitBtn} type="button" disabled={disabled || !value.trim()} onClick={submit}>
+          Gjett
+        </button>
+      )}
     </div>
   )
 }

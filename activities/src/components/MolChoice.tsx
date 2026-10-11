@@ -7,11 +7,13 @@ import styles from "./MolChoice.module.css"
 interface ChoiceStatus {
   tokens: number
   lockedBy: { id: string; name: string } | null
+  /** This person picked today's category - tomorrow's is for someone else. */
+  chosenToday?: boolean
   categories: { slug: string; title: string }[]
 }
 
 /** "Velg MOL" (lib/molChoice.ts): spend a token to pick tomorrow's More or Less category. Shown only to someone holding a token, at
- * the bottom of the More or Less page. Once anyone has picked, the day is locked for everyone. */
+ * the bottom of the More or Less page. Once anyone has picked, the day is locked for everyone - and whoever picked today's can't pick tomorrow's. */
 export function MolChoice({ accessToken }: { accessToken: string }) {
   const [status, setStatus] = useState<ChoiceStatus | null>(null)
   const [slug, setSlug] = useState("")
@@ -62,6 +64,8 @@ export function MolChoice({ accessToken }: { accessToken: string }) {
       <p className={styles.title}>Velg MOL</p>
       {status.lockedBy ? (
         <p className={styles.text}>Morgendagens kategori har blitt bestemt av {status.lockedBy.name}. Tokenet ditt er ikke brukt.</p>
+      ) : status.chosenToday ? (
+        <p className={styles.text}>Du valgte dagens kategori, så morgendagens er opp til andre. Tokenet ditt er ikke brukt - du kan velge dagen etter.</p>
       ) : (
         <>
           <p className={styles.text}>Velg morgendagens MOL. Du kan velge fritt blant alle, til og med blacklistede kategorier.</p>

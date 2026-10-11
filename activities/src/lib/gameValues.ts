@@ -13,12 +13,22 @@ export const JAIL_MULTIPLIER = 0.25
 /** Channel completion/reward announcements post to - placeholder until a dedicated daily-hub channel exists. */
 export const ANNOUNCE_CHANNEL_ID = "808992127249678386"
 
-/** Max rewarded challenge completions per day (flag/outline/capital/mastermind share this pool) - losses don't count against it. */
+/** How many daily challenges there are (flag, outline, capital, mastermind). */
+export const DAILY_CHALLENGE_COUNT = 4
+
+/** Only when each country game has a single item (see ITEMS_PER_GAME in the bot's Jobs/dailyHubChallengesJob.ts): max rewarded completions per day
+ * (flag/outline/capital/mastermind share this pool) - losses don't count against it. With several items per game each right answer pays on its own instead. */
 export const MAX_REWARDED_CHALLENGES_PER_DAY = 3
 
+/** Flag / outline / capital. How many items a game has each day is set when the bot makes them (ITEMS_PER_GAME in Jobs/dailyHubChallengesJob.ts) -
+ * with just one, it plays as it always did: no counter, no skip, and the single reward below. */
 export const countryChallengeValues = {
+  /** Wrong guesses allowed on one item before its answer is shown and the next comes up. */
   maxAttempts: 3,
-  reward: 1000,
+  /** Chips for each item guessed right, when a game has several. */
+  rewardPerCorrect: 500,
+  /** Chips for solving the one item of a game that has just one. */
+  singleItemReward: 1000,
 }
 
 export const moreOrLessValues = {

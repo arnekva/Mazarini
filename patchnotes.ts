@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.4.5'
+    public static readonly currentVersion = '36.4.6'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['* MOL: Lands uavhengighet lagt til, fra Thomas', '* MOL: Norske regjeringer lagt til, fra Thomas'].join('\n')
+            ['* MOL: Det må gå minst én dag mellom hver gang den samme brukeren kan velge MOL-kategori.'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

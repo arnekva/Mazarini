@@ -1,7 +1,7 @@
 import { MazariniClient } from '../client/MazariniClient'
 import { getCountryOutlinePath, getOutlineCapableCcn3s } from '../helpers/countryOutlineHelper'
 import { JobStatus } from '../helpers/emojiHelper'
-import { IDailyHubChallenges, MazariniUser } from '../interfaces/database/databaseInterface'
+import { IDailyHubChallenges, IDailyHubCountryChallenge, IDailyHubOutlineChallenge, MazariniUser } from '../interfaces/database/databaseInterface'
 import { RandomUtils } from '../utils/randomUtils'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -17,6 +17,8 @@ interface Country {
 }
 
 const DISTRACTOR_COUNT = 3
+/** How many flags / outlines / capitals each daily game has. The Activities app reads the count off the stored items, so this is the only place to change it. */
+const ITEMS_PER_GAME = 3
 
 /** `world-countries` is where capitals come from, and its latest release (5.1.0, Feb 2025) predates capitals that have changed since. These win over it.
  * Same list as CAPITAL_OVERRIDES in the Activities app's lib/capitalOverrides.ts - kept in sync by hand. */
@@ -42,6 +44,19 @@ function pickWithHistory(pool: Country[], previous: string[]): { picked: Country
     const picked = RandomUtils.getRandomItemFromList(candidates.length > 0 ? candidates : pool)
     const newPrevious = previous.includes(picked.name.common) ? [picked.name.common] : [...previous, picked.name.common]
     return { picked, newPrevious }
+}
+
+/** `count` different countries in a row, each picked the way pickWithHistory does, with the history carried from one to the next. */
+function pickManyWithHistory(pool: Country[], previous: string[], count: number): { picked: Country[]; history: string[] } {
+    const picked: Country[] = []
+    let history = previous
+    for (let i = 0; i < count; i++) {
+        const available = pool.filter((c) => !picked.includes(c))
+        const next = pickWithHistory(available, history)
+        picked.push(next.picked)
+        history = next.newPrevious
+    }
+    return { picked, history }
 }
 
 /** Flag image URL for a country - flagcdn.com is a free, keyless CDN, so this needs no live "list
@@ -76,33 +91,52 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
 
         const history = (await client.database.getStorage()).dailyHubHistory ?? {}
 
-        const { picked: flagCountry, newPrevious: flagHistory } = pickWithHistory(withFlag, history.flag ?? [])
-        const flagOptions = shuffled([flagCountry.name.common, ...pickDistractors(withFlag, flagCountry, DISTRACTOR_COUNT).map((c) => c.name.common)])
+        const flags = pickManyWithHistory(withFlag, history.flag ?? [], ITEMS_PER_GAME)
+        const flagItems: IDailyHubCountryChallenge[] = flags.picked.map((country) => ({
+            options: shuffled([country.name.common, ...pickDistractors(withFlag, country, DISTRACTOR_COUNT).map((c) => c.name.common)]),
+            answer: country.name.common,
+            flagPng: flagPngUrl(country.cca2),
+        }))
 
-        const { picked: capitalCountry, newPrevious: capitalHistory } = pickWithHistory(withCapital, history.capital ?? [])
-        const capitalOptions = shuffled([
-            capitalOf(capitalCountry),
-            ...pickDistractors(withCapital, capitalCountry, DISTRACTOR_COUNT).map(capitalOf),
-        ])
+        const capitals = pickManyWithHistory(withCapital, history.capital ?? [], ITEMS_PER_GAME)
+        const capitalItems: IDailyHubCountryChallenge[] = capitals.picked.map((country) => ({
+            options: shuffled([capitalOf(country), ...pickDistractors(withCapital, country, DISTRACTOR_COUNT).map(capitalOf)]),
+            answer: capitalOf(country),
+            countryName: country.name.common,
+        }))
 
-        const { picked: outlineCountry, newPrevious: outlineHistory } = pickWithHistory(withOutline, history.outline ?? [])
-        const outline = await getCountryOutlinePath(outlineCountry.ccn3, outlineCountry.cca3)
-        if (!outline) return 'failed'
-        const outlineOptions = shuffled([
-            outlineCountry.name.common,
-            ...pickDistractors(withOutline, outlineCountry, DISTRACTOR_COUNT).map((c) => c.name.common),
-        ])
+        // An outline has to be fetched, and one can come back empty - then the next candidate takes its place.
+        const outlineItems: IDailyHubOutlineChallenge[] = []
+        let outlineHistory = history.outline ?? []
+        const usedOutlines: Country[] = []
+        for (let tries = 0; outlineItems.length < ITEMS_PER_GAME && tries < ITEMS_PER_GAME + 5; tries++) {
+            const available = withOutline.filter((c) => !usedOutlines.includes(c))
+            if (available.length === 0) break
+            const { picked, newPrevious } = pickWithHistory(available, outlineHistory)
+            outlineHistory = newPrevious
+            usedOutlines.push(picked)
+            const outline = await getCountryOutlinePath(picked.ccn3, picked.cca3)
+            if (!outline) continue
+            outlineItems.push({
+                options: shuffled([picked.name.common, ...pickDistractors(withOutline, picked, DISTRACTOR_COUNT).map((c) => c.name.common)]),
+                answer: picked.name.common,
+                path: outline.path,
+                viewBox: outline.viewBox,
+            })
+        }
+        if (outlineItems.length < ITEMS_PER_GAME) return 'failed'
 
         const challenges: IDailyHubChallenges = {
             date: new Date().toISOString().slice(0, 10),
-            flag: { options: flagOptions, answer: flagCountry.name.common, flagPng: flagPngUrl(flagCountry.cca2) },
-            capital: { options: capitalOptions, answer: capitalOf(capitalCountry), countryName: capitalCountry.name.common },
-            outline: { options: outlineOptions, answer: outlineCountry.name.common, path: outline.path, viewBox: outline.viewBox },
+            // The first item is spread into the top level too, so the Activities app from before there were several still has something to read.
+            flag: { ...flagItems[0], items: flagItems },
+            capital: { ...capitalItems[0], items: capitalItems },
+            outline: { ...outlineItems[0], items: outlineItems },
         }
 
         client.database.updateStorage({
             dailyHubChallenges: challenges,
-            dailyHubHistory: { flag: flagHistory, capital: capitalHistory, outline: outlineHistory },
+            dailyHubHistory: { flag: flags.history, capital: capitals.history, outline: outlineHistory },
         })
         await resetDailyHubUserStats(client, users)
         return 'success'

@@ -1,5 +1,5 @@
 import { authenticateRequest } from "@/lib/discordAuth"
-import { getCountryGameStatus, isCountryGameId, submitCountryGuess } from "@/lib/countryGuessHandler"
+import { getCountryGameStatus, isCountryGameId, skipCountryItem, submitCountryGuess } from "@/lib/countryGuessHandler"
 
 export async function GET(request: Request, { params }: { params: Promise<{ game: string }> }) {
   const { game } = await params
@@ -18,7 +18,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ gam
   const { user, error } = await authenticateRequest(request)
   if (error) return error
 
-  const { guess } = await request.json()
+  const { guess, skip } = await request.json()
+  if (skip === true) return skipCountryItem(game, user)
   if (typeof guess !== "string" || !guess) return Response.json({ error: "Missing guess" }, { status: 400 })
 
   return submitCountryGuess(game, user, guess)

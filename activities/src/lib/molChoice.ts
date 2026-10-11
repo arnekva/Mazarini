@@ -5,6 +5,8 @@
 //   other/moreOrLess/forcedNext     the chosen category - the 05:00 job uses it over any vote (the same field /admin moreorless next sets)
 //   other/moreOrLess/forcedNextBy   who chose it. Its existence IS the lock; the bot reads it to disable the vote buttons and to skip
 //                                   the "ban yesterday's category" vote on the day the category is played. Cleared by the 05:00 job.
+//   other/moreOrLess/currentChosenBy  who chose the category being played today (forcedNextBy carried over at 05:00). That person can't
+//                                   choose tomorrow's - nobody picks two days in a row.
 
 import { increment } from "firebase/database"
 import { FirebaseHelper } from "./db/firebaseHelper"
@@ -16,6 +18,7 @@ import { loadCustomCategory } from "./moreOrLessHandler"
 
 const MOL_PATH = "other/moreOrLess"
 const LOCK_PATH = `${MOL_PATH}/forcedNextBy`
+const CURRENT_CHOSEN_PATH = `${MOL_PATH}/currentChosenBy`
 const TOKENS_PATH = (userId: string) => `users/${userId}/molTokens`
 const API_LIST_URL = "https://api.moreorless.io/en/games.json"
 
@@ -88,20 +91,30 @@ const nameOf = (user: AuthenticatedDiscordUser) => user.globalName ?? user.usern
 
 export async function getMolChoiceStatus(user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const [tokens, lockedBy]: [number | undefined, ForcedNextBy | undefined] = await Promise.all([
+  const [tokens, lockedBy, currentChosenBy]: [number | undefined, ForcedNextBy | undefined, { id: string } | undefined] = await Promise.all([
     firebase.getData(TOKENS_PATH(user.id)),
     firebase.getData(LOCK_PATH),
+    firebase.getData(CURRENT_CHOSEN_PATH),
   ])
   const owned = typeof tokens === "number" && tokens > 0 ? tokens : 0
+  // Picked today's category: tomorrow's is for someone else.
+  const chosenToday = currentChosenBy?.id === user.id
   // The (long) list is only needed by someone who can actually use it.
-  const categories = owned > 0 && !lockedBy ? (await playableCategories()).map((c) => ({ slug: c.slug, title: c.title })).sort((a, b) => a.title.localeCompare(b.title, "nb")) : []
-  return Response.json({ tokens: owned, lockedBy: lockedBy ? { id: lockedBy.id, name: lockedBy.name } : null, categories })
+  const categories =
+    owned > 0 && !lockedBy && !chosenToday
+      ? (await playableCategories()).map((c) => ({ slug: c.slug, title: c.title })).sort((a, b) => a.title.localeCompare(b.title, "nb"))
+      : []
+  return Response.json({ tokens: owned, lockedBy: lockedBy ? { id: lockedBy.id, name: lockedBy.name } : null, chosenToday, categories })
 }
 
 export async function chooseMolCategory(user: AuthenticatedDiscordUser, slug: string) {
   const firebase = new FirebaseHelper()
   const tokens = await firebase.getData(TOKENS_PATH(user.id))
   if (!(typeof tokens === "number" && tokens > 0)) return err("Du har ingen Velg MOL-token")
+
+  // Nobody picks two days in a row: whoever's pick is today's category leaves tomorrow's to someone else. The token isn't touched.
+  const currentChosenBy: { id: string } | undefined = await firebase.getData(CURRENT_CHOSEN_PATH)
+  if (currentChosenBy?.id === user.id) return err("Du valgte dagens kategori, så du kan ikke velge morgendagens også. Tokenet ditt er ikke brukt.", 403)
 
   const category = (await allCategories()).find((c) => c.slug === slug)
   if (!category) return err("Fant ikke kategorien")

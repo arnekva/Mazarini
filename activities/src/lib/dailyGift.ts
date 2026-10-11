@@ -14,7 +14,8 @@ import { AuthenticatedDiscordUser } from "./discordAuth"
 import { announceInChannel, lootButtonComponent } from "./discordMessage"
 
 export type GiftKind = "dond" | "box" | "chest" | "chips" | "spin" | "pot"
-export type GiftQuality = "basic" | "premium" | "elite"
+/** basic/premium/elite for everything tiered; legendary is Deal or No Deal's 100k; color/super/fantastic/nondupe are the reward-only chests (see the bot's specialChests.ts). */
+export type GiftQuality = "basic" | "premium" | "elite" | "legendary" | "color" | "super" | "fantastic" | "nondupe"
 
 export interface DailyGiftOption {
   /** Unique within a round, e.g. "dond-elite", "chips". */
@@ -43,9 +44,18 @@ export const DEFAULT_GIFT_RECIPIENTS = ["397429060898390016", "24560755425476608
 
 export const GIFT_PATH = "other/dailyGift"
 
-const QUALITY_NAMES: Record<GiftQuality, string> = { basic: "Basic", premium: "Premium", elite: "Elite" }
+const QUALITY_NAMES: Record<GiftQuality, string> = {
+  basic: "Basic",
+  premium: "Premium",
+  elite: "Elite",
+  legendary: "Legendary",
+  color: "Color",
+  super: "Super",
+  fantastic: "Fantastic",
+  nondupe: "Non-dupe",
+}
 /** What each Deal or No Deal tier's top prize is (see dondValues in gameValues.ts) - how people know them. */
-const DOND_TOP_PRIZE: Record<GiftQuality, string> = { basic: "10k", premium: "20k", elite: "50k" }
+const DOND_TOP_PRIZE: Partial<Record<GiftQuality, string>> = { basic: "10k", premium: "20k", elite: "50k", legendary: "100k" }
 
 export function giftLabel(option: DailyGiftOption): string {
   const quality = option.quality ?? "basic"
@@ -69,7 +79,12 @@ export function giftIcon(option: DailyGiftOption): string {
   return { dond: "💼", box: "📦", chest: "🎁", chips: "🪙", spin: "🎡", pot: "💀" }[option.kind]
 }
 
-const QUALITIES: GiftQuality[] = ["basic", "premium", "elite"]
+/** Which qualities each tiered kind can be given as. */
+const QUALITIES: Record<"dond" | "box" | "chest", GiftQuality[]> = {
+  dond: ["basic", "premium", "elite", "legendary"],
+  box: ["basic", "premium", "elite"],
+  chest: ["basic", "premium", "elite", "color", "super", "fantastic", "nondupe"],
+}
 
 /** Checks and cleans up what the admin panel sent: only known kinds, a sensible chips amount, no duplicates. */
 export function parseGiftOptions(raw: unknown): DailyGiftOption[] | string {
@@ -78,7 +93,7 @@ export function parseGiftOptions(raw: unknown): DailyGiftOption[] | string {
   for (const item of raw) {
     const kind = item?.kind as GiftKind
     if (kind === "dond" || kind === "box" || kind === "chest") {
-      if (!QUALITIES.includes(item.quality)) return `Ugyldig kvalitet for ${kind}`
+      if (!QUALITIES[kind].includes(item.quality)) return `Ugyldig kvalitet for ${kind}`
       options.push({ id: `${kind}-${item.quality}`, kind, quality: item.quality })
     } else if (kind === "chips") {
       const amount = Math.floor(Number(item.amount))

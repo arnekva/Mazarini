@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { RankTrack } from "@/app/api/spotify/playlist/route"
 import { isAdminUser } from "@/lib/admin"
-import { RankState, answer, currentCandidate, currentComparison, init, keep, skip } from "@/lib/songRanker"
+import { RankState, answer, currentCandidate, currentComparison, dedupe, init, keep, skip } from "@/lib/songRanker"
 import { CompactProgress, fromCompact, loadCloudProgress, saveCloudProgress, toCompact } from "@/lib/songRankCloud"
 import { extractPlaylistId } from "@/lib/spotifyIds"
 import { clearProgress, loadProgress, saveProgress } from "@/lib/songRankStorage"
@@ -100,9 +100,20 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
     }
   }
 
-  function resume() {
+  async function resume() {
     if (!saved) return
-    setState(saved)
+    // A ranking saved before duplicate editions were collapsed can have the same song in it twice - clean that up on the way in, against
+    // the playlist as it is now when it can be fetched (offline it still removes plain repeats).
+    let current: RankTrack[] | undefined
+    try {
+      const res = await fetch(`/api/spotify/playlist?playlist=${encodeURIComponent(saved.playlistId)}`)
+      if (res.ok) current = ((await res.json()) as { tracks: RankTrack[] }).tracks
+    } catch {
+      // keep going without it
+    }
+    const cleaned = dedupe(saved, current)
+    if (cleaned === saved) setState(saved)
+    else update(cleaned)
     setScreen("playing")
   }
 
@@ -117,7 +128,7 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
         setError(data.error ?? "Noe gikk galt")
         return
       }
-      update(fromCompact(cloud, data.tracks as RankTrack[]))
+      update(dedupe(fromCompact(cloud, data.tracks as RankTrack[]), data.tracks as RankTrack[]))
       setScreen("playing")
     } catch {
       setError("Klarte ikke å hente spillelisten")

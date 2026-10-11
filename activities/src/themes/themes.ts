@@ -61,7 +61,7 @@ export const THEMES: ThemeDefinition[] = [
 ]
 
 /** Today as it is in Norway, whatever timezone the server runs in. */
-function norwegianDate(now: Date) {
+export function norwegianDate(now: Date) {
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", year: "numeric", month: "numeric", day: "numeric" }).formatToParts(now).map((p) => [p.type, p.value])
   )

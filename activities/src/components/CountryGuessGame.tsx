@@ -26,25 +26,39 @@ const suggestionsByGame: Record<CountryGameId, string[]> = {
   capital: [],
 }
 
-interface StatusResponse {
+/** Where the game stands - what the server answers with on opening the page and after every guess or skip. */
+interface GameView {
   challenge: Challenge
-  completed: boolean
-  numAttempts: number
+  /** How many of the day's items are settled - the one on screen is number index + 1. */
+  index: number
+  /** How many items the day has. With 1 the game plays as it always did: attempts counter on top, no skip button. */
+  total: number
+  correctCount: number
+  finished: boolean
+  /** Wrong guesses so far on the item on screen. */
+  itemAttempts: number
   maxAttempts: number
+  /** Chips for one right answer. */
+  reward: number
+}
+
+interface StatusResponse extends GameView {
   error?: string
 }
 
-interface GuessResponse {
+interface GuessResponse extends Partial<GameView> {
   correct?: boolean
-  numAttempts?: number
+  /** The item is settled (right, out of attempts or skipped) - what's on screen is now the next one, or the end. */
+  itemDone?: boolean
+  skipped?: boolean
   attemptsLeft?: number
   revealAnswer?: string
-  reward?: number
-  chips?: number
+  itemReward?: number
   alreadyCompleted?: boolean
   noAttemptsLeft?: boolean
   answer?: string
   hint?: { bearing: number; distanceKm: number }
+  error?: string
 }
 
 export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; accessToken: string }) {
@@ -73,6 +87,28 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
     guess(option)
   }
 
+  /** Takes in what the server says after a guess or a skip: where the game stands now (and so which item is on screen). */
+  function applyView(result: GuessResponse) {
+    if (result.challenge === undefined || result.index === undefined || result.total === undefined) return
+    const next: GameView = {
+      challenge: result.challenge,
+      index: result.index,
+      total: result.total,
+      correctCount: result.correctCount ?? 0,
+      finished: !!result.finished,
+      itemAttempts: result.itemAttempts ?? 0,
+      maxAttempts: result.maxAttempts ?? 3,
+      reward: result.reward ?? 0,
+    }
+    setStatus(next)
+    if (next.finished) setDone(true)
+  }
+
+  function endText(result: GuessResponse) {
+    const total = result.total ?? 1
+    return total > 1 && result.finished ? ` Ferdig! Du fikk ${result.correctCount ?? 0} av ${total} riktige.` : ""
+  }
+
   async function guess(option: string) {
     if (busy || done) return
     setDidYouMean(null)
@@ -82,6 +118,7 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
         method: "POST",
         body: JSON.stringify({ guess: option }),
       })
+      const several = (result.total ?? status?.total ?? 1) > 1
 
       if (result.alreadyCompleted) {
         setMessage("Du har allerede løst denne i dag.")
@@ -90,15 +127,47 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
         setMessage(`Ingen forsøk igjen. Riktig svar var: ${result.answer}`)
         setDone(true)
       } else if (result.correct) {
-        setMessage(`Riktig! ${result.reward ? `Du fikk ${result.reward} chips.` : "Ingen chips denne gangen (maks 3/dag)."}`)
+        setHint(null)
+        setMessage(
+          `Riktig! ${
+            result.itemReward ? `Du fikk ${result.itemReward} chips.` : several ? "" : "Ingen chips denne gangen (maks 3/dag)."
+          }${endText(result)}`.trim()
+        )
+        applyView(result)
+        setDone(!!result.finished || !several)
+      } else if (result.itemDone) {
+        // Out of attempts on this one: the answer, then the next item (or the end).
+        setHint(null)
+        setMessage(`Feil! Riktig svar var: ${result.revealAnswer}.${endText(result)}`)
+        applyView(result)
+        setDone(!!result.finished || !several)
+      } else {
+        const distance = result.hint ? ` ~${result.hint.distanceKm.toLocaleString("no-NO")} km unna.` : ""
+        setHint(result.hint ?? null)
+        setMessage(`Feil!${distance} ${result.attemptsLeft ?? 0} forsøk igjen.`)
+        applyView(result)
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function skip() {
+    if (busy || done) return
+    setDidYouMean(null)
+    setBusy(true)
+    try {
+      const result = await callApi<GuessResponse>(`/api/games/${game}`, accessToken, {
+        method: "POST",
+        body: JSON.stringify({ skip: true }),
+      })
+      if (result.alreadyCompleted) {
+        setMessage("Du har allerede løst denne i dag.")
         setDone(true)
       } else {
-        const revealed = result.revealAnswer ? ` Riktig svar var: ${result.revealAnswer}.` : ""
-        const distance = result.hint ? ` ~${result.hint.distanceKm.toLocaleString("no-NO")} km unna.` : ""
-        setHint(result.revealAnswer ? null : result.hint ?? null)
-        setMessage(`Feil!${distance}${revealed} ${result.attemptsLeft ?? 0} forsøk igjen.`)
-        if (result.revealAnswer) setDone(true)
-        setStatus((s) => (s ? { ...s, numAttempts: result.numAttempts ?? s.numAttempts } : s))
+        setHint(null)
+        setMessage(`Hoppet over. Riktig svar var: ${result.revealAnswer}.${endText(result)}`)
+        applyView(result)
       }
     } finally {
       setBusy(false)
@@ -108,10 +177,13 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
   if (!status) return <p className={styles.status}>Laster...</p>
   if (status.error) return <p className={styles.status}>{status.error}</p>
 
+  const several = status.total > 1
+  const over = done || status.finished
+
   return (
     <>
       <p className={styles.status}>
-        Forsøk: {status.numAttempts} / {status.maxAttempts}
+        {several ? `${Math.min(status.index + 1, status.total)} / ${status.total}` : `Forsøk: ${status.itemAttempts} / ${status.maxAttempts}`}
       </p>
 
       <div className={styles.visualBox}>
@@ -134,9 +206,9 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
         </div>
       )}
 
-      {message && <div className={`${styles.result} ${message.startsWith("Riktig") ? styles.resultCorrect : styles.resultWrong}`}>{message}</div>}
+      {message && <div className={`${styles.result} ${message.startsWith("Riktig") || message.startsWith("Hoppet") ? styles.resultCorrect : styles.resultWrong}`}>{message}</div>}
 
-      {hint && !done && (
+      {hint && !over && (
         <div style={{ display: "flex", justifyContent: "center", margin: "6px 0" }} role="img" aria-label={`Riktig svar ligger ${hint.bearing} grader fra nord`}>
           <svg width="44" height="44" viewBox="-22 -22 44 44" style={{ transform: `rotate(${hint.bearing}deg)` }}>
             <path d="M0 -18 L11 2 L3 -1 L3 18 L-3 18 L-3 -1 L-11 2 Z" fill="currentColor" />
@@ -144,7 +216,7 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
         </div>
       )}
 
-      {didYouMean && !(busy || done || status.completed) && (
+      {didYouMean && !(busy || over) && (
         <div className={styles.status}>
           Mente du <strong>{didYouMean.suggestion}</strong>?{" "}
           <button type="button" onClick={() => guess(didYouMean.suggestion)}>
@@ -156,7 +228,10 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
         </div>
       )}
 
-      {!didYouMean && !(busy || done || status.completed) && <TypeaheadInput suggestions={suggestionsByGame[game]} onSubmit={handleSubmit} disabled={busy} />}
+      {/* One item a day: no skip, as it always was. Several: skipping is there next to the guess button. */}
+      {!didYouMean && !(busy || over) && (
+        <TypeaheadInput suggestions={suggestionsByGame[game]} onSubmit={handleSubmit} disabled={busy} onSkip={several ? skip : undefined} />
+      )}
     </>
   )
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSpotifyAppToken } from "@/lib/spotifyServerAuth"
 import { extractPlaylistId } from "@/lib/spotifyIds"
+import { trackKey } from "@/lib/trackKey"
 
 export interface RankTrack {
   id: string
@@ -8,26 +9,6 @@ export interface RankTrack {
   artists: string
   image?: string
   durationMs: number
-}
-
-// Collapses "Song Title - 2011 Remaster" / "Song Title (Live)" / "Song Title (feat. X)" down to the
-// same key as plain "Song Title", so the same song released on a single vs. an album (different
-// Spotify track IDs) is recognized as a duplicate instead of two separate entries.
-function normalizeTitle(name: string): string {
-  return name
-    .toLowerCase()
-    .split(" - ")[0]
-    .replace(/\([^)]*\)/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()
-}
-
-function normalizeArtists(artists: string): string {
-  return artists
-    .split(",")
-    .map((a) => a.trim().toLowerCase())
-    .sort()
-    .join(",")
 }
 
 export async function GET(req: NextRequest) {
@@ -51,7 +32,7 @@ export async function GET(req: NextRequest) {
         const t = item.track
         if (!t || !t.id) continue // local files / removed tracks come back null
         const artists = (t.artists ?? []).map((a: { name: string }) => a.name).join(", ")
-        const key = `${normalizeTitle(t.name)}|${normalizeArtists(artists)}`
+        const key = trackKey(t.name, artists)
         const popularity = t.popularity ?? 0
         const existing = byKey.get(key)
         if (existing && existing.popularity >= popularity) continue // keep the more popular edition already stored

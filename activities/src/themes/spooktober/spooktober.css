@@ -157,6 +157,38 @@
     opacity: 0;
   }
 }
+/* The way back: the same flight mirrored, so the swarm does not all head the same direction. */
+@keyframes spkBatFlyBack {
+  0% {
+    transform: translate(calc(100vw + 60px), 0) scaleY(1);
+    opacity: 0;
+  }
+  3% {
+    opacity: 0.9;
+  }
+  6% {
+    transform: translate(calc(82vw), -24px) scaleY(0.7);
+  }
+  10% {
+    transform: translate(calc(64vw), 10px) scaleY(1);
+  }
+  14% {
+    transform: translate(calc(46vw), -18px) scaleY(0.7);
+  }
+  18% {
+    transform: translate(calc(28vw), 6px) scaleY(1);
+  }
+  22% {
+    transform: translate(calc(8vw), -20px) scaleY(0.7);
+    opacity: 0.9;
+  }
+  24%,
+  100% {
+    transform: translate(-5vw, -10px);
+    opacity: 0;
+  }
+}
+
 
 /* ---------- ghosts: drift up and down at the edges, faint ---------- */
 .spkGhost {

@@ -3,7 +3,7 @@ import { after } from "next/server"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { DailyGameStats, hasRewardedSlotsLeft } from "./dailyHub"
-import { announceInChannel } from "./discordMessage"
+import { announceInChannel, KEKW_EMOJI } from "./discordMessage"
 import { mastermindValues } from "./gameValues"
 
 interface Guess {
@@ -105,7 +105,7 @@ export async function submitMastermindGuess(user: AuthenticatedDiscordUser, gues
       })
     )
   } else if (finished) {
-    after(() => announceInChannel(user.channelId, { content: `<@${user.id}> klarte IKKE mastermind på ${mastermindValues.totalAttempts} forsøk!` }))
+    after(() => announceInChannel(user.channelId, { content: `<@${user.id}> klarte IKKE mastermind på ${mastermindValues.totalAttempts} forsøk! ${KEKW_EMOJI}` }))
   }
 
   return Response.json({

@@ -4,7 +4,7 @@ import { callApi } from "@/lib/apiClient"
 import { useEffect, useState } from "react"
 import styles from "./AdminPanel.module.css"
 
-type Quality = "basic" | "premium" | "elite"
+type Quality = "basic" | "premium" | "elite" | "legendary" | "color" | "super" | "fantastic" | "nondupe"
 type Tiered = "dond" | "box" | "chest"
 
 interface GiftOption {
@@ -22,18 +22,24 @@ interface CurrentGift {
   claims: { userId: string; optionId: string; label: string; at: number }[]
 }
 
-const QUALITIES: Quality[] = ["basic", "premium", "elite"]
-const TIERED: { kind: Tiered; title: string; icon: string; names: Record<Quality, string> }[] = [
-  { kind: "dond", title: "Deal or No Deal", icon: "💼", names: { basic: "10k", premium: "20k", elite: "50k" } },
+// What each kind can be given as - the Deal or No Deal 100k, and the reward-only chests (the bot's specialChests.ts), on top of basic/premium/elite.
+const TIERED: { kind: Tiered; title: string; icon: string; names: Partial<Record<Quality, string>> }[] = [
+  { kind: "dond", title: "Deal or No Deal", icon: "💼", names: { basic: "10k", premium: "20k", elite: "50k", legendary: "100k" } },
   { kind: "box", title: "Lootbox", icon: "📦", names: { basic: "Basic", premium: "Premium", elite: "Elite" } },
-  { kind: "chest", title: "Loot chest", icon: "🎁", names: { basic: "Basic", premium: "Premium", elite: "Elite" } },
+  {
+    kind: "chest",
+    title: "Loot chest",
+    icon: "🎁",
+    names: { basic: "Basic", premium: "Premium", elite: "Elite", color: "Color", super: "Super", fantastic: "Fantastic", nondupe: "Non-dupe" },
+  },
 ]
+const qualitiesOf = (t: (typeof TIERED)[number]) => Object.keys(t.names) as Quality[]
 
 const tierKey = (kind: Tiered, quality: Quality) => `${kind}-${quality}`
 
 function optionText(o: GiftOption): string {
   const tier = TIERED.find((t) => t.kind === o.kind)
-  if (tier && o.quality) return `${tier.icon} ${tier.title} ${tier.names[o.quality]}`
+  if (tier && o.quality) return `${tier.icon} ${tier.title} ${tier.names[o.quality] ?? o.quality}`
   if (o.kind === "chips") return `🪙 ${(o.amount ?? 0).toLocaleString("nb-NO")} chips`
   if (o.kind === "pot") return `💀 Legg til ${(o.amount ?? 0).toLocaleString("nb-NO")} i deathroll-potten`
   return "🎡 Ekstra spinn"
@@ -90,7 +96,7 @@ export function AdminDailyGift({ accessToken, myId }: { accessToken: string; myI
   const chipsAmount = Math.floor(Number(chips))
   const potAmount = Math.floor(Number(pot))
   const options: GiftOption[] = [
-    ...TIERED.flatMap((t) => QUALITIES.filter((q) => tiers.has(tierKey(t.kind, q))).map((q) => ({ id: tierKey(t.kind, q), kind: t.kind, quality: q }))),
+    ...TIERED.flatMap((t) => qualitiesOf(t).filter((q) => tiers.has(tierKey(t.kind, q))).map((q) => ({ id: tierKey(t.kind, q), kind: t.kind, quality: q }))),
     ...(chipsOn && chipsAmount > 0 ? [{ id: "chips", kind: "chips" as const, amount: chipsAmount }] : []),
     ...(potOn && potAmount > 0 ? [{ id: "pot", kind: "pot" as const, amount: potAmount }] : []),
     ...(spin ? [{ id: "spin", kind: "spin" as const }] : []),
@@ -148,7 +154,7 @@ export function AdminDailyGift({ accessToken, myId }: { accessToken: string; myI
             {t.icon} {t.title}
           </span>
           <div className={styles.pills}>
-            {QUALITIES.map((q) => {
+            {qualitiesOf(t).map((q) => {
               const key = tierKey(t.kind, q)
               return (
                 <button key={q} type="button" className={`${styles.pill} ${tiers.has(key) ? styles.pillOn : ""}`} aria-pressed={tiers.has(key)} onClick={() => toggleTier(key)}>

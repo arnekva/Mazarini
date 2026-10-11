@@ -188,10 +188,20 @@ export interface DeckEditorCard {
 export interface IDailyGameStats {
     moreOrLess?: IMoreOrLessStats
     mastermind?: IMastermindStats
-    /** Daily-hub challenges (reuses the same shape as mastermind - attempted/completed/numAttempts) */
-    flag?: IMastermindStats
-    outline?: IMastermindStats
-    capital?: IMastermindStats
+    /** Daily-hub challenges: several items per game (see IDailyHubCountryChallenge.items) */
+    flag?: IDailyHubGameStats
+    outline?: IDailyHubGameStats
+    capital?: IDailyHubGameStats
+}
+
+/** Progress in one of today's flag/outline/capital games. Written by the Activities app (lib/countryGuessHandler.ts) - keep the shapes in step. */
+export interface IDailyHubGameStats extends IMastermindStats {
+    /** How many of the items have been settled (right, out of attempts or skipped) - the one being played is items[index]. Missing on a save from before there were several items. */
+    index?: number
+    /** How many of those were guessed right */
+    correct?: number
+    /** Wrong guesses so far on items[index] */
+    itemAttempts?: number
 }
 
 export interface IMoreOrLessStats {
@@ -497,6 +507,9 @@ export interface IDailyHubCountryChallenge {
     flagPng?: string
     /** Only set on the capital challenge - the country name shown to the player */
     countryName?: string
+    /** All of today's items for this game, in play order - the first is also spread into the fields above, so a reader that only knows one item still works.
+     * Missing on a puzzle made before there were several (then the fields above are the only item). */
+    items?: IDailyHubCountryChallenge[]
 }
 
 export interface IDailyHubOutlineChallenge {
@@ -505,6 +518,8 @@ export interface IDailyHubOutlineChallenge {
     /** Precomputed SVG path for the country's outline, so the activity never has to bundle/process a world map itself */
     path: string
     viewBox: string
+    /** See IDailyHubCountryChallenge.items */
+    items?: IDailyHubOutlineChallenge[]
 }
 
 export interface IScheduledTasks {
@@ -535,8 +550,8 @@ export interface IDailyGiftOption {
     /** Unique within a round, e.g. "dond-elite", "chips" */
     id: string
     kind: 'dond' | 'box' | 'chest' | 'chips' | 'spin' | 'pot'
-    /** dond (basic = 10k, premium = 20k, elite = 50k), box and chest */
-    quality?: 'basic' | 'premium' | 'elite'
+    /** dond (basic = 10k, premium = 20k, elite = 50k, legendary = 100k), box (basic/premium/elite) and chest (also the reward-only color/super/fantastic/nondupe) */
+    quality?: 'basic' | 'premium' | 'elite' | 'legendary' | 'color' | 'super' | 'fantastic' | 'nondupe'
     /** chips and pot (added to the deathroll pot) only */
     amount?: number
 }

@@ -24,12 +24,24 @@ interface HubStatus {
   giftWaiting?: boolean
   wheelSpinsLeft: number
   dondTokens: number
+  /** How many items each of flag/outline/capital has today - 1 is the way it used to be (a shared pool of rewarded completions). */
+  itemsPerGame?: number
   challengesCompleted: number
   maxChallenges: number
-  challenges: Record<ChallengeId, { completed: boolean; numAttempts: number }>
+  challenges: Record<ChallengeId, { completed: boolean; numAttempts: number; correct?: number; settled?: number }>
 }
 
 const noSubscribe = () => () => {}
+
+/** The line under a challenge card: how it went, or how far along it is. */
+function cardSub(id: ChallengeId, state: HubStatus["challenges"][ChallengeId] | undefined, itemsPerGame: number): string {
+  if (!state) return " "
+  if (id !== "mastermind" && itemsPerGame > 1) {
+    if (state.completed) return `${state.correct ?? 0} av ${itemsPerGame} riktige`
+    return (state.settled ?? 0) > 0 ? `${state.settled} av ${itemsPerGame} besvart` : " "
+  }
+  return state.completed ? "Løst i dag" : `${state.numAttempts} forsøk brukt`
+}
 
 export default function Home() {
   const { accessToken, ready, discordUser, authError } = useDiscord()
@@ -37,6 +49,7 @@ export default function Home() {
   const [status, setStatus] = useState<HubStatus | null>(null)
   const [redirecting, setRedirecting] = useState(false)
   const isAdmin = isAdminUser(discordUser?.id)
+  const itemsPerGame = status?.itemsPerGame ?? 1
   // Song Rank is tucked away unless the page was opened with ?songrank=true (read straight off the URL; false while server-rendering).
   const showSongRank = useSyncExternalStore(
     noSubscribe,
@@ -152,19 +165,23 @@ export default function Home() {
 
           <div className={styles.section}>
             <div className={styles.challengeHeader}>
-              <strong>Quiz - velg 3 for chips</strong>
+              <strong>{itemsPerGame > 1 ? "Quiz - chips for hvert riktige svar" : "Quiz - velg 3 for chips"}</strong>
               <span className={styles.challengeCount}>
                 {status?.challengesCompleted ?? 0} / {status?.maxChallenges ?? 3}
               </span>
             </div>
-            <p className={styles.subtitle}>Samme 4 oppgaver for alle i dag - de 3 første riktige gir chips.</p>
+            <p className={styles.subtitle}>
+              {itemsPerGame > 1
+                ? `Samme 4 oppgaver for alle i dag - ${itemsPerGame} flagg, outlines og hovedsteder, og hvert riktige svar gir chips.`
+                : "Samme 4 oppgaver for alle i dag - de 3 første riktige gir chips."}
+            </p>
             <div className={styles.challengeGrid}>
               {challenges.map((c) => {
                 const state = status?.challenges[c.id]
                 return (
                   <HubCard key={c.id} href={`/${c.id}`} enabled={loggedIn} cardClass={c.cardClass}>
                     {c.label}
-                    <span className={styles.cardSub}>{state?.completed ? "Løst i dag" : state ? `${state.numAttempts} forsøk brukt` : " "}</span>
+                    <span className={styles.cardSub}>{cardSub(c.id, state, itemsPerGame)}</span>
                   </HubCard>
                 )
               })}

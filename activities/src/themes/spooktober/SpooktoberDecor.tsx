@@ -1,4 +1,6 @@
 import "./spooktober.css"
+import { norwegianDate } from "../themes"
+import { SpookBats } from "./SpookBats"
 /** A cobweb drawn from the top-left corner: spokes fanning out, joined by threads that sag towards the corner between each pair. */
 function Cobweb() {
   const angles = [0, 15, 30, 45, 60, 75, 90].map((deg) => (deg * Math.PI) / 180)
@@ -28,13 +30,14 @@ function Cobweb() {
 }
 
 export function SpooktoberDecor() {
+  // Rendered per request (see the root layout), so this is today. Only October has a build-up; any other day shows the usual three bats.
+  const today = norwegianDate(new Date())
+  const day = today.month === 10 ? today.day : 1
   return (
     <div data-theme-decor="spooktober">
       <div className="spkMoon" />
       <Cobweb />
-      <span className="spkBat spkBat1">🦇</span>
-      <span className="spkBat spkBat2">🦇</span>
-      <span className="spkBat spkBat3">🦇</span>
+      <SpookBats day={day} />
       <span className="spkGhost spkGhost1">👻</span>
       <span className="spkGhost spkGhost2">👻</span>
       <div className="spkFog" />
