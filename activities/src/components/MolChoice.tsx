@@ -12,6 +12,9 @@ interface ChoiceStatus {
   categories: { slug: string; title: string }[]
 }
 
+/** Velg MOL is temporarily disabled - flip to true (here and in lib/dondItems.ts) to show it on the More or Less page again. */
+export const MOL_CHOICE_ENABLED = false
+
 /** "Velg MOL" (lib/molChoice.ts): spend a token to pick tomorrow's More or Less category. Shown only to someone holding a token, at
  * the bottom of the More or Less page. Once anyone has picked, the day is locked for everyone - and whoever picked today's can't pick tomorrow's. */
 export function MolChoice({ accessToken }: { accessToken: string }) {

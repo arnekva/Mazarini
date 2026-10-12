@@ -11,6 +11,7 @@ import { IMoreOrLess, IMoreOrLessBanVote, IMoreOrLessVote, MazariniStorage } fro
 type IMoreOrLessLock = NonNullable<MazariniStorage['moreOrLess']['forcedNextBy']>
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { CustomMOLHandler } from '../../res/games/moreOrLess/CustomMOLHandler'
+import { LootboxCommands } from '../store/lootboxCommands'
 import { DateUtils } from '../../utils/dateUtils'
 import { FetchUtils } from '../../utils/fetchUtils'
 import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
@@ -356,7 +357,6 @@ export class MoreOrLess extends AbstractCommands {
                     else reward += GameValues.moreOrLess.rewards.tier6
                 }
             }
-            if (completedNow && !completedPreviously) reward += GameValues.moreOrLess.rewards.completed
             user.dailyGameStats.moreOrLess.bestAttempt = game.correctAnswers
             if (game.data.length === 0) user.dailyGameStats.moreOrLess.completed = true
             const awarded = this.client.bank.giveMoney(user, reward)
@@ -378,17 +378,10 @@ export class MoreOrLess extends AbstractCommands {
 
         game.message.edit({ components: [container.container] })
         if (completedNow && !completedPreviously) {
-            // const buttons = new ActionRowBuilder<ButtonBuilder>()
-
-            // let boxQuality = LootboxQuality.Basic
-            // if (game.totalQuestions > 100) boxQuality = LootboxQuality.Elite
-            // else if (game.totalQuestions > 50) boxQuality = LootboxQuality.Premium
-
-            // const boxButton = LootboxCommands.getLootRewardButton(user.id, boxQuality).components
-            // buttons.addComponents(boxButton)
+            // Completing the category is rewarded with a Super chest (not chips) - opened with the usual "Open loot" button
             this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, {
-                text: `Gz med fullført more or less, ${MentionUtils.mentionUser(user.id)}!`,
-                // components: [buttons],
+                text: `Gz med fullført more or less, ${MentionUtils.mentionUser(user.id)}! Du får en Super chest!`,
+                components: [LootboxCommands.getLootRewardButton(user.id, 'super', 'chest')],
             })
         }
     }

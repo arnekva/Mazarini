@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.4.6'
+    public static readonly currentVersion = '36.4.7'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,11 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['* MOL: Det må gå minst én dag mellom hver gang den samme brukeren kan velge MOL-kategori.'].join('\n')
+            [
+                '* MOL: Å fullføre en MOL-kategori gir nå en super-chest.',
+                '* MOL: Fikset ordlegging på Regjerings-kategorien.',
+                '* Effects: Velg MOL er skrudd av.',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

@@ -2,7 +2,7 @@ import { increment } from "firebase/database"
 import { after } from "next/server"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
-import { announceInChannel } from "./discordMessage"
+import { announceInChannel, lootButtonComponent } from "./discordMessage"
 import { CUSTOM_MOL_GAME_TAG, moreOrLessValues } from "./gameValues"
 
 import cg_norwegianCities from "@/data/more-or-less/norwegianCities.json"
@@ -285,7 +285,9 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
   const secondAttempt = alreadyPlayed && typeof stat.secondAttempt === "number" ? stat.secondAttempt : alreadyPlayed ? correctAnswers : null
   const completedPreviously = stat.completed === true
   const newBest = Math.max(oldBest, correctAnswers)
-  const reward = correctAnswers > oldBest ? tierReward(oldBest, correctAnswers) + (completedNow && !completedPreviously ? moreOrLessValues.rewards.completed : 0) : 0
+  const reward = correctAnswers > oldBest ? tierReward(oldBest, correctAnswers) : 0
+  // Completing the category the first time today is rewarded with a Super chest (not chips), opened with the bot's "Open loot" button
+  const superChest = completedNow && !completedPreviously
   const newStat: MolStat = { attempted: true, firstAttempt, secondAttempt, bestAttempt: newBest, numAttempts: attempts, completed: completedPreviously || completedNow }
   await firebase.updateData({
     // Added on the server rather than written as "what it was + reward": the balance may have changed since anyone last read it.
@@ -294,10 +296,11 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
     ...endSession(user.id),
   })
 
-  if (completedNow && !completedPreviously) {
+  if (superChest) {
     after(() =>
       announceInChannel(user.channelId, {
-        content: `<@${user.id}> fullførte dagens More or Less (${category.title}) med ${correctAnswers} riktige og fikk ${reward} chips!`,
+        content: `<@${user.id}> fullførte dagens More or Less (${category.title}) med ${correctAnswers} riktige og får en Super chest!`,
+        components: [lootButtonComponent(user.id, "super", "chest")],
       })
     )
   }
@@ -306,6 +309,7 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
     correct,
     finished: true,
     completedNow,
+    superChest,
     correctAnswers,
     reward,
     bestAttempt: newBest,

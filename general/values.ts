@@ -91,7 +91,6 @@ export type GameValuesType = {
             tier4: number
             tier5: number
             tier6: number
-            completed: number
             bestAttempt: number
             bestAttemptShards: number
         }
@@ -315,7 +314,6 @@ export const GameValues: GameValuesType = {
             tier4: 200, // 31-40
             tier5: 200, // 41-50
             tier6: 50, // 51+
-            completed: 2500,
             bestAttempt: 2500,
             bestAttemptShards: 5,
         },

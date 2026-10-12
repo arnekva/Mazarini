@@ -39,7 +39,6 @@ export const moreOrLessValues = {
     tier4: 200, // 31-40
     tier5: 200, // 41-50
     tier6: 50, // 51+
-    completed: 2500,
   },
 }
 

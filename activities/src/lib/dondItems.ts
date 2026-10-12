@@ -40,6 +40,9 @@ const chest = (quality: "basic" | "premium" | "elite"): Omit<DondEffect, "id"> =
   loot: { type: "chest", quality },
 })
 
+/** Velg MOL is temporarily disabled - flip to true (here and in components/MolChoice.tsx) to bring it back. */
+const MOL_CHOICE_ENABLED = false
+
 /** Very high reward (high tier only): a token to pick tomorrow's More or Less category - see lib/molChoice.ts. Also a chest effect in the bot. */
 const chooseMol: Omit<DondEffect, "id"> = {
   label: "Velg MOL",
@@ -58,7 +61,7 @@ const raw: Record<Tier, Omit<DondEffect, "id">[]> = {
     box("premium"),
     chest("basic"),
   ],
-  high: [pot(30000), spins(5), buff("guaranteedLootColor", 3, "3x guaranteed colors"), box("elite"), chest("premium"), chooseMol],
+  high: [pot(30000), spins(5), buff("guaranteedLootColor", 3, "3x guaranteed colors"), box("elite"), chest("premium"), ...(MOL_CHOICE_ENABLED ? [chooseMol] : [])],
 }
 
 const byTier: Record<Tier, DondEffect[]> = {

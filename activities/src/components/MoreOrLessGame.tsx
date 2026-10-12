@@ -4,7 +4,7 @@ import { callApi } from "@/lib/apiClient"
 import { proxyImageUrl } from "@/lib/imgProxy"
 import { useEffect, useState } from "react"
 import contentStyles from "./GameContent.module.css"
-import { MolChoice } from "./MolChoice"
+import { MOL_CHOICE_ENABLED, MolChoice } from "./MolChoice"
 import styles from "./MoreOrLessModal.module.css"
 
 interface Item {
@@ -43,6 +43,8 @@ interface GuessResponse {
   chips?: number
   revealedNext?: Item
   completedNow?: boolean
+  /** First completion today - a Super chest is waiting in the channel the Activity was started from. */
+  superChest?: boolean
   bestAttempt?: number
   numAttempts?: number
   liveReward?: number
@@ -72,6 +74,7 @@ function valueText(item: Item, strings: MolStrings | undefined, isYear: boolean)
 interface RoundResult {
   correct: boolean
   completed: boolean
+  superChest: boolean
   reward: number
   /** How many were right in the round that just ended. */
   score: number
@@ -169,6 +172,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
         setResult({
           correct: !!res.correct,
           completed: !!res.completedNow,
+          superChest: !!res.superChest,
           reward: res.reward ?? 0,
           score: res.correctAnswers ?? correctAnswers,
           revealed: res.revealedNext,
@@ -230,7 +234,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
 
       {roundOver && <button className={styles.startBtn} type="button" disabled={busy} onClick={start}>Prøv igjen</button>}
 
-      <MolChoice accessToken={accessToken} />
+      {MOL_CHOICE_ENABLED && <MolChoice accessToken={accessToken} />}
     </>
   )
 }
@@ -263,6 +267,7 @@ function RoundResultCard({ result, strings, isYear, best }: { result: RoundResul
           {relation} {previous.subject} ({valueText(previous, strings, isYear)})
         </div>
       )}
+      {result.superChest && <div className={styles.resultCompare}>Du får en Super chest! Åpne den i kanalen.</div>}
 
       <div className={styles.resultStats}>
         <div className={styles.resultStat}>

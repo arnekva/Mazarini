@@ -177,7 +177,8 @@ export namespace DondItems {
         },
         lootboxReward(LootboxQuality.Elite),
         lootchestReward(LootboxQuality.Premium),
-        chooseMolReward,
+        // Velg MOL is temporarily disabled - uncomment to bring it back (also MOL_CHOICE_ENABLED in activities)
+        // chooseMolReward,
     ]
 
     /** Basic chests: very low / low. Premium: medium. Elite: high. Lootboxes and lootchests are left out - a chest doesn't hand out more chests. */
