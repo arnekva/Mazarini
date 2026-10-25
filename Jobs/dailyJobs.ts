@@ -333,8 +333,9 @@ export class DailyJobs {
             })
         })
 
+        // one person alone can't blacklist a category - it takes everyone who voted, and at least two of them
         const newlyBlacklisted =
-            totalVoters > 0
+            totalVoters >= MoreOrLess.minVotersToBlacklist
                 ? vote.candidates.filter((c) => (voteCounts[c.slug] ?? 0) === 0 && (blacklistCounts[c.slug] ?? 0) === totalVoters)
                 : []
         const remainingCandidates = vote.candidates.filter((c) => !newlyBlacklisted.includes(c))
@@ -481,7 +482,9 @@ export class DailyJobs {
 
         // Snapshotted here since usersWithStats' `attempted` flag gets reset below, once the new day's category takes over
         // A category someone picked with a "Velg MOL" token can't be voted away the day after - that would waste the token
-        const banVote: IMoreOrLessBanVote | null = attempted && !storage.moreOrLess.currentChosenBy
+        // Nor can one person alone - no ban button unless at least two played
+        const banVote: IMoreOrLessBanVote | null =
+            attempted && !storage.moreOrLess.currentChosenBy && usersWithStats.length >= MoreOrLess.minVotersToBlacklist
             ? { slug: storage.moreOrLess.current.slug, title: storage.moreOrLess.current.title, eligibleVoters: usersWithStats.map((u) => u.id), votes: [] }
             : null
 

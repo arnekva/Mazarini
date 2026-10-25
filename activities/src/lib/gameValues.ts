@@ -28,7 +28,7 @@ export const countryChallengeValues = {
   /** Chips for each item guessed right, when a game has several. */
   rewardPerCorrect: 500,
   /** Chips for solving the one item of a game that has just one. */
-  singleItemReward: 1000,
+  singleItemReward: 500,
 }
 
 export const moreOrLessValues = {
@@ -56,7 +56,7 @@ export const mastermindValues = {
 
 // Mirrors general/values.ts (dealOrNoDeal) and the case tables in commands/games/dealOrNoDeal.ts in the bot repo.
 export const dondValues = {
-  effectItemChance: 50, // percent chance a bank offer is an effect instead of chips
+  effectItemChance: 10, // percent chance a bank offer is an effect instead of chips
   offerBase: 0.5,
   offerPerRound: 0.05,
 }
@@ -75,7 +75,7 @@ export const DOND_TIER_K: Record<DondTier, number> = { basic: 10, premium: 20, e
 
 // Mirrors general/values.ts (blackjack) in the bot repo.
 export const blackjackValues = {
-  deathrollRefundEnabled: true, // "tilbakelegg": half of a lost deathroll-pot stake goes back to the pot
+  deathrollRefundEnabled: false, // "tilbakelegg": half of a lost deathroll-pot stake goes back to the pot
 }
 
 // Payouts mirror the bot's /rulett (commands/money/gamblingCommands.ts); the timings are specific to the shared table.

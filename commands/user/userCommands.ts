@@ -188,7 +188,7 @@ export class UserCommands extends AbstractCommands {
                 .setCustomId('activeLootSeries')
                 // The label is the prompt the user sees for this input
                 .setLabel('Sett din default loot series')
-                .setPlaceholder(`mazarini|sw|hp|lotr`)
+                .setPlaceholder((await this.getLootableSeriesNames()).join('|'))
                 .setValue(`${user.userSettings?.activeLootSeries ?? ''}`)
                 .setRequired(false)
                 // Short means only a single line of text
@@ -202,6 +202,15 @@ export class UserCommands extends AbstractCommands {
             modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthActionRow)
             await interaction.showModal(modal)
         }
+    }
+
+    /** Series you can open boxes/chests from, newest first */
+    private async getLootableSeriesNames(): Promise<string[]> {
+        const allSeries = (await this.database.getLootboxSeries()) ?? []
+        return allSeries
+            .filter((series) => !series.isCCG)
+            .sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())
+            .map((series) => series.name.toLowerCase())
     }
 
     private async handleUserSettingsModalDialog(modalInteraction: ModalSubmitInteraction) {
@@ -251,7 +260,7 @@ export class UserCommands extends AbstractCommands {
             }
         }
         if (activeLootSeries) {
-            const validSeries = ['mazarini', 'sw', 'hp', 'lotr'].includes(activeLootSeries.trim().toLowerCase())
+            const validSeries = (await this.getLootableSeriesNames()).includes(activeLootSeries.trim().toLowerCase())
             if (validSeries) {
                 user.userSettings.activeLootSeries = activeLootSeries.trim().toLowerCase()
             }

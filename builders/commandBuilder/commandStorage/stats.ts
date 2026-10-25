@@ -29,6 +29,12 @@ export const statsCommand: ISlashCommandItem = {
                     description: 'bruker du vil se statistikk for - default deg selv',
                     type: ApplicationCommandOptionType.User,
                 },
+                {
+                    name: 'serie',
+                    description: 'loot-serien du vil se statistikk for (kun loot) - default nyeste',
+                    type: ApplicationCommandOptionType.String,
+                    autocomplete: true,
+                },
             ],
         },
     ],

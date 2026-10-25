@@ -25,6 +25,10 @@ export class LootStatsHelper {
         this.lootStats.trades[type] = (this.lootStats.trades[type] ?? 0) + 1
     }
 
+    registerDayWithUnobtainable() {
+        this.lootStats.achievements.daysWithUnobtainable = (this.lootStats.achievements?.daysWithUnobtainable ?? 0) + 1
+    }
+
     registerArt() {
         this.lootStats.achievements.artsPurchased = (this.lootStats?.achievements?.artsPurchased ?? 0) + 1
     }

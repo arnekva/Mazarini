@@ -137,10 +137,11 @@ export namespace CommandBuilder {
     export const createCommands = (client: Client) => {
         // CommandBuilder.deleteCommand('1356989552941727935', client)
         // CommandBuilder.createSlashCommand(CommandStorage.Deck, client)
-        CommandBuilder.createSlashCommand(CommandStorage.CCG, client)
-        CommandBuilder.createSlashCommand(CommandStorage.Admin, client)
-        CommandBuilder.createSlashCommand(CommandStorage.Kjevle, client)
-
+        // CommandBuilder.createSlashCommand(CommandStorage.CCG, client)
+        // CommandBuilder.createSlashCommand(CommandStorage.Admin, client)
+        // CommandBuilder.createSlashCommand(CommandStorage.Kjevle, client)
+        // CommandBuilder.createSlashCommand(CommandStorage.LootboxCommand, client) // /loot inventory bakgrunn + new art description
+        CommandBuilder.createSlashCommand(CommandStorage.StatsCommand, client) // /stats bruker serie
         // CommandBuilder.deleteCommand('1025783112648642701', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }

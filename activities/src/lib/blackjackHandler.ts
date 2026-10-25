@@ -49,6 +49,9 @@ interface BlackjackPlayer {
    * along with the chips (see applyToPotBankrolls), and the seat can never bet more than this - the pot win is played on its own,
    * never with the chips the player had before. Undefined is an ordinary seat playing with all their chips. */
   potBankroll?: number
+  /** Their "Deal på ny" count when this round was dealt, less any used since - a redeal needs this as well as the live count,
+   * so DPN that arrives mid-round (DOND, a pot win elsewhere) only becomes usable from the next round. */
+  redealsAtRoundStart?: number
 }
 
 interface RedealVote {
@@ -527,7 +530,7 @@ function tableView(lobby: BlackjackLobby, userId: string, me: { chips?: number; 
     frameSeq: lobby.frameSeq ?? 0,
     myGotRedealBonus: !!lobby.redealBonusIds?.includes(userId),
     myChips: me.chips ?? 0,
-    myRedealsAvailable: me.redeals ?? 0,
+    myRedealsAvailable: usableRedeals(lobby.players[userId], me.redeals ?? 0),
     myPotBankroll: lobby.players[userId]?.potBankroll,
     iAmPlaying: !!lobby.players[userId],
     iAmSpectating: lobby.spectators[userId] !== undefined,
@@ -697,10 +700,17 @@ function drawOpeningHand(deck: Card[], forcedRank: string | undefined): { hand: 
  * after the transaction commits, not as a side effect here. `chips` is each player's balance as of
  * the moment this specific attempt started - read fresh by the caller right before each transaction
  * attempt, since a stale balance could let someone ante in on a hand they can no longer afford. */
+/** The live "Deal på ny" count, capped at what the player had when the round was dealt (see redealsAtRoundStart). */
+function usableRedeals(player: BlackjackPlayer | undefined, live: number): number {
+  if (player?.redealsAtRoundStart === undefined) return live
+  return Math.max(0, Math.min(live, player.redealsAtRoundStart))
+}
+
 function performDeal(
   lobby: BlackjackLobby,
   chips: Record<string, number>,
-  testHands: Record<string, string | undefined>
+  testHands: Record<string, string | undefined>,
+  redeals: Record<string, number>
 ): { lobby: BlackjackLobby; chipDeltas: Record<string, number>; potRefundTotal: number } {
   const buyIn = lobby.buyIn
   let deck = freshShuffledDeck()
@@ -716,7 +726,13 @@ function performDeal(
 
     const cards = drawOpeningHand(deck, testHands[id])
     deck = cards.remaining
-    lobby.players[id] = { ...lobby.players[id], sittingOut: false, hasPlayed: true, hands: [{ cards: cards.hand, status: isBlackjack(cards.hand) ? "blackjack" : "playing" }] }
+    lobby.players[id] = {
+      ...lobby.players[id],
+      sittingOut: false,
+      hasPlayed: true,
+      hands: [{ cards: cards.hand, status: isBlackjack(cards.hand) ? "blackjack" : "playing" }],
+      redealsAtRoundStart: redeals[id] ?? 0,
+    }
   }
 
   const dealerFirst = drawCard(deck)
@@ -778,6 +794,8 @@ function maybeApplyRedealVote(lobby: BlackjackLobby): {
   if (!lobby.redealVote) return { lobby, redealsConsumed: false }
   const allYes = activeVoterIds(lobby).every((id) => lobby.redealVote!.votes[id])
   if (!allYes) return { lobby, redealsConsumed: false }
+  const requester = lobby.players[lobby.redealVote.requestedBy]
+  if (requester?.redealsAtRoundStart !== undefined) requester.redealsAtRoundStart = Math.max(0, requester.redealsAtRoundStart - 1)
   const redealt = performRedeal(lobby)
   // The new deal can leave nobody with anything to do (everyone dealt a blackjack) - then it resolves straight away, same as a
   // first deal does, rather than waiting on a move nobody can make.
@@ -815,6 +833,9 @@ export async function requestBlackjackRedeal(instanceId: string, lobbyId: string
       return { error: "Forespørselen din ble avvist denne runden - prøv igjen neste runde" }
     }
     if (available <= 0) return { error: 'Du har ingen "Deal på ny" igjen' }
+    if (usableRedeals(lobby.players[user.id], available) <= 0) {
+      return { error: '"Deal på ny" du har fått under runden kan først brukes neste runde' }
+    }
 
     lobby.redealVote = { requestedBy: user.id, votes: { [user.id]: true }, createdAt: Date.now() }
     const resolved = maybeApplyRedealVote(lobby)
@@ -1178,11 +1199,17 @@ export async function dealBlackjackRound(instanceId: string, lobbyId: string, us
   if (!peek) return Response.json({ closed: true }, { status: 404 })
   const chips: Record<string, number> = {}
   const testHands: Record<string, string | undefined> = {}
+  const redeals: Record<string, number> = {}
   await Promise.all(
     peek.playerOrder.map(async (id) => {
-      const [balance, testHand] = await Promise.all([firebase.getChips(id), firebase.getData(`other/pendingBlackjackTestHand/${id}`)])
+      const [balance, testHand, redealCount] = await Promise.all([
+        firebase.getChips(id),
+        firebase.getData(`other/pendingBlackjackTestHand/${id}`),
+        firebase.getData(redealsPath(id)),
+      ])
       chips[id] = balance
       testHands[id] = testHand?.rank
+      redeals[id] = (redealCount as number | undefined) ?? 0
     })
   )
 
@@ -1193,7 +1220,7 @@ export async function dealBlackjackRound(instanceId: string, lobbyId: string, us
       const remaining = ROUND_START_COOLDOWN_MS - (Date.now() - lobby.roundOverAt)
       if (remaining > 0) return { error: "Vent litt før neste runde", status: 429 }
     }
-    return performDeal(lobby, chips, testHands)
+    return performDeal(lobby, chips, testHands, redeals)
   })
 
   const usedTestHands = Object.keys(testHands).filter((id) => testHands[id])

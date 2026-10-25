@@ -50,6 +50,8 @@ export class MoreOrLess extends AbstractCommands {
     private valuesAreYears = false
     /** The "morgendagens kategori" vote message posted by this process - kept so its buttons can be disabled when someone locks the category with a "Velg MOL" token. */
     private voteMessage?: Message
+    /** A category is only blacklisted when every voter wants it gone - and there have to be at least this many voters */
+    static readonly minVotersToBlacklist = 2
     /** Historical blacklist, kept as a permanent seed alongside whatever the community votes into `storage.moreOrLess.blacklist` in firebase. */
     // :maggiscared:
     static readonly defaultBlacklistSeed: string[] = [
@@ -633,7 +635,7 @@ export class MoreOrLess extends AbstractCommands {
         const alreadyVoted = banVote.votes.includes(interaction.user.id)
         banVote.votes = alreadyVoted ? banVote.votes.filter((id) => id !== interaction.user.id) : [...banVote.votes, interaction.user.id]
 
-        const shouldBan = banVote.votes.length === banVote.eligibleVoters.length
+        const shouldBan = banVote.votes.length === banVote.eligibleVoters.length && banVote.votes.length >= MoreOrLess.minVotersToBlacklist
         if (shouldBan) {
             banVote.banned = true
             const existing = storage.moreOrLess.blacklist ?? []

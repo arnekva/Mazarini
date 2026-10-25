@@ -249,31 +249,31 @@ export const GameValues: GameValuesType = {
             [126, 150],
             [151, 175],
             [176, 200],
-            [201, 400],
+            // [201, 400],
             [401, 10002],
         ],
         potSkip: { diceTarget: 200, roll: 69, potPenalty: 0 },
         addToPot: {
-            athStreakMultiplier: 2500,
+            athStreakMultiplier: 2000,
             streakMultiplier: 1000,
             biggestLossMultiplier: 20,
-            largeNumberLossMultiplier: 4,
+            largeNumberLossMultiplier: 3,
             minReward: 100,
         },
         jokes: {
             nineElevenRemove: 2977,
-            nineElevenChance: 0.85,
+            nineElevenChance: 0.9,
         },
         checkForReward: {
             sameDigitsMultiplier: 3,
             allDigitsExceptFirstAreZeroMultiplier: 3,
-            diceTargetMultiplier: 5,
-            roll2Reward: 10,
+            diceTargetMultiplier: 3,
+            roll2Reward: 5,
             doublePotDepositMultiplier: 2,
             minRollForMultiplier: 100,
             minPotForDouble: 1000,
             maxDoubleReward: 2500,
-            lootboxChance: 7,
+            lootboxChance: 0.1,
             lootbox: {
                 basic: { min: 0, max: 9999, cost: 5000 },
                 premium: { min: 10000, max: 24999, cost: 10000 },
@@ -286,8 +286,8 @@ export const GameValues: GameValuesType = {
                 4060, 1989, 170, 1001, 1914, 1918, 1939, 1945, 1969, 6040, 2469,
             ],
             unSpecialNumbers: [2025, 2027, 68, 70, 1998, 1995, 5718, 1436, 984, 4151],
-            multiplier: 3,
-            unSpecialNumberPenalty: -2,
+            multiplier: 1,
+            unSpecialNumberPenalty: -1,
         },
         tomasa: {
             baseChance: 0.001,
@@ -296,7 +296,7 @@ export const GameValues: GameValuesType = {
         potWin: {
             winOn: 69,
             minTarget: 10000,
-            noThanksThreshold: 12500,
+            noThanksThreshold: 10000,
             noThanksBonus: 2500,
         },
         autoCompleteDiceDefault: 10002,
@@ -398,27 +398,27 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 50, // percent chance to get an effect item
+        effectItemChance: 10, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
 
     // Blackjack
     blackjack: {
-        deathrollRefundEnabled: true, // If true, lostAddedBack is shown and refund is applied
+        deathrollRefundEnabled: false, // If true, lostAddedBack is shown and refund is applied
     },
     wordle: {
-        reward: 10000,
+        reward: 5000,
         rewardShards: 5,
         wordleCapPerPerson: 2500,
     },
     loot: {
         chestEffectOdds: {
-            basic: 0.2,
-            premium: 0.4,
-            elite: 1,
+            basic: 0.0,
+            premium: 0.0,
+            elite: 0,
         },
-        chestRerollOdds: 0.8,
+        chestRerollOdds: 0.05,
         artPrice: 10000,
     },
     mastermind: {

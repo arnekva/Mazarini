@@ -40,15 +40,25 @@ export class StatsCommands extends AbstractCommands {
             return this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
         } else if (category === 'loot') {
             const username = userParam && userParam instanceof User ? userParam.username : interaction.user.username
-            const container = this.getLootStatsContainer(user, username)
+            const container = await this.getLootStatsContainer(user, username, interaction.options.get('serie')?.value as string)
             return this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
         }
         if (!embed) embed = EmbedUtils.createSimpleEmbed(`Du har ingen statistikk`, ` `)
         this.messageHelper.replyToInteraction(interaction, embed)
     }
 
-    private getLootStatsContainer(user: MazariniUser, username: string) {
-        const lootStats = ['lootfice'].map((series) => ({ series: series, stats: user.loot[series].stats as ILootStats }))
+    /** Non-CCG series, newest first */
+    private async getLootSeriesNewestFirst() {
+        const allSeries = (await this.client.database.getLootboxSeries()) ?? []
+        return allSeries.filter((series) => !series.isCCG).sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())
+    }
+
+    /** Stats for one series - the one asked for, or the newest */
+    private async getLootStatsContainer(user: MazariniUser, username: string, seriesParam?: string) {
+        const allSeries = await this.getLootSeriesNewestFirst()
+        const seriesName = (allSeries.find((series) => series.name === seriesParam) ?? allSeries[0])?.name
+        const stats = seriesName ? (user.loot?.[seriesName]?.stats as ILootStats) : undefined
+        const lootStats = stats ? [{ series: seriesName, stats }] : []
         const container = new SimpleContainer()
         const text1 = new TextDisplayBuilder().setContent(['# Loot stats', `## ${username}`].join('\n'))
         container.addComponent(text1, 'header')
@@ -84,7 +94,7 @@ export class StatsCommands extends AbstractCommands {
                     return acc + amount
                 }, 0)
                 const uniqueItems = rarities.reduce((acc, rarity) => {
-                    const amount = user.loot[series].inventory[rarity].items?.length ?? 0
+                    const amount = user.loot[series].inventory?.[rarity]?.items?.length ?? 0
                     return acc + amount
                 }, 0)
                 const text = new TextDisplayBuilder().setContent(
@@ -103,8 +113,23 @@ export class StatsCommands extends AbstractCommands {
                 container.addComponent(text, series)
             }
         })
+        if (lootStats.length === 0) {
+            container.addSeparator()
+            container.addComponent(new TextDisplayBuilder().setContent(`Ingen loot-stats for ${seriesName?.toUpperCase() ?? 'denne serien'} ennå`), 'no-stats')
+        }
 
         return container
+    }
+
+    private async seriesAutocomplete(interaction: ATCInteraction) {
+        const input = ((interaction.options as any).getFocused() as string).toLowerCase()
+        const series = await this.getLootSeriesNewestFirst()
+        interaction.respond(
+            series
+                .filter((s) => s.name.toLowerCase().includes(input))
+                .slice(0, 25)
+                .map((s) => ({ name: s.name, value: s.name }))
+        )
     }
 
     private getDonDContainer(user: MazariniUser, username: string) {
@@ -394,7 +419,9 @@ export class StatsCommands extends AbstractCommands {
                             this.executeStatsSubCommand(rawInteraction)
                         },
                         autoCompleteCallback: (rawInteraction: ATCInteraction) => {
-                            this.filterEmojis(rawInteraction)
+                            const focused = (rawInteraction.options as any).getFocused(true)
+                            if (focused?.name === 'serie') this.seriesAutocomplete(rawInteraction)
+                            else this.filterEmojis(rawInteraction)
                         },
                     },
                 ],

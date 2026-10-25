@@ -280,6 +280,8 @@ export interface ILootSeries {
     isCCG?: boolean
     unobtainableHolder?: string //userID of current holder
     inventoryArts?: ILootSeriesInventoryArt[]
+    /** Shown instead of the formatted item name, for names an id can't hold (æøå, casing, punctuation) */
+    displayNames?: Record<string, string>
 }
 
 export interface ILootSeriesInventoryArt {
@@ -293,6 +295,7 @@ export interface IUserLoot {
     hp?: IUserLootSeries
     lotr?: IUserLootSeries
     lootfice?: IUserLootSeries
+    kjlu?: IUserLootSeries
     mazariniCCG?: IUserLootSeries
     swCCG?: IUserLootSeries
     hpCCG?: IUserLootSeries
@@ -302,7 +305,10 @@ export interface IUserLootSeries {
     name: string
     pityLevel?: IPityTracker
     inventory: IUserLootSeriesInventory
+    /** The background shown behind the inventory - one of unlockedArts */
     inventoryArt?: ILootSeriesInventoryArt
+    /** Names of the inventory backgrounds bought for this series - each can only be bought once */
+    unlockedArts?: string[]
     stats?: ILootStats
 }
 

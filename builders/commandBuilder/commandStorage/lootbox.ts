@@ -74,11 +74,17 @@ export const lootboxCommand: ISlashCommandItem = {
                     type: ApplicationCommandOptionType.String,
                     autocomplete: true,
                 },
+                {
+                    name: 'bakgrunn',
+                    description: 'bytt til en av bakgrunnene du har låst opp',
+                    type: ApplicationCommandOptionType.String,
+                    autocomplete: true,
+                },
             ],
         },
         {
             commandName: 'art',
-            commandDescription: 'Kjøp en ny tilfeldig bakgrunn til inventoryen din',
+            commandDescription: 'Lås opp en tilfeldig ny bakgrunn til inventoryen din',
             options: [
                 {
                     name: 'series',

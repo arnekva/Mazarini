@@ -48,6 +48,8 @@ interface BlackjackGame {
     resolved: boolean
     fromDeathroll?: number
     hasRedealt?: boolean
+    /** The player's "Deal på ny" count when the game started, less any used since - DPN earned mid-game can't be used in it */
+    reDealsAtStart: number
 }
 
 interface BlackjackMessages {
@@ -149,6 +151,7 @@ export class Blackjack extends AbstractCommands {
             resolved: false,
             fromDeathroll: isDeathrollPot,
             hasRedealt: false,
+            reDealsAtStart: user.effects?.positive?.blackjackReDeals ?? 0,
         }
         this.games.push(game)
 
@@ -257,8 +260,8 @@ export class Blackjack extends AbstractCommands {
             if (this.canSplit(player.hands[player.currentHandIndex].cards))
                 buttonRow.addComponents(splitBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
             if (this.canInsure(game, player)) buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake / 2))))
-            if (this.canReDeal(player, user) || hasDeathrollRedeal) {
-                const reDeals = (user.effects?.positive?.blackjackReDeals ?? 0) + (hasDeathrollRedeal ? 1 : 0)
+            if (this.canReDeal(game, player, user) || hasDeathrollRedeal) {
+                const reDeals = this.usableReDeals(game, user) + (hasDeathrollRedeal ? 1 : 0)
                 buttonRow.addComponents(reDealBtn(game.id, reDeals))
             }
         }
@@ -281,8 +284,13 @@ export class Blackjack extends AbstractCommands {
         return !player.insurance && game.dealer.hand[0].rank === 'A'
     }
 
-    private canReDeal(player: BlackjackPlayer, user: MazariniUser) {
-        return player.hands.length === 1 && player.hands[0].cards.length === 2 && (user.effects?.positive?.blackjackReDeals ?? 0) > 0
+    private canReDeal(game: BlackjackGame, player: BlackjackPlayer, user: MazariniUser) {
+        return player.hands.length === 1 && player.hands[0].cards.length === 2 && this.usableReDeals(game, user) > 0
+    }
+
+    /** The live "Deal på ny" count, capped at what the player had when the game started */
+    private usableReDeals(game: BlackjackGame, user: MazariniUser) {
+        return Math.max(0, Math.min(user.effects?.positive?.blackjackReDeals ?? 0, game.reDealsAtStart))
     }
 
     private async updateBoard(game: BlackjackGame, reveal: boolean) {
@@ -572,7 +580,9 @@ export class Blackjack extends AbstractCommands {
             game.hasRedealt = true
         } else {
             const user = await this.client.database.getUser(player.id)
+            if (this.usableReDeals(game, user) <= 0) return
             user.effects.positive.blackjackReDeals -= 1
+            game.reDealsAtStart -= 1
             this.database.updateUser(user)
         }
         game.dealer.hand = new Array<ICardObject>()

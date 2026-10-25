@@ -18,6 +18,7 @@ import {
 import { ArrayUtils } from '../utils/arrayUtils'
 import { TextUtils } from '../utils/textUtils'
 import { CCGCardGenerator } from './ccgCardGenerator'
+import { InventoryArts } from './inventoryArts'
 
 /** CCG series whose emoji names match the card ID exactly (no series prefix) */
 const CCG_SERIES_EMOJI_IS_ID = new Set(['swCCG'])
@@ -617,9 +618,9 @@ export class ImageGenerationHelper {
         return await base.composite(composites).toBuffer()
     }
 
-    public async extractArtSection(art: ILootSeriesInventoryArt, rarity: ItemRarity): Promise<Buffer> {
+    public async extractArtSection(seriesName: string, art: ILootSeriesInventoryArt, rarity: ItemRarity): Promise<Buffer> {
         // Get original dimensions
-        const image = fs.readFileSync(`graphics/background/inventory_art/${art.name}.png`)
+        const image = fs.readFileSync(InventoryArts.imagePath(seriesName, art))
         const metadata = await sharp(image).metadata()
         const { width, height } = metadata
         const section = this.resolveRaritySection(rarity)
@@ -656,7 +657,7 @@ export class ImageGenerationHelper {
         if (isHP) return bg
         const artObj: ILootSeriesInventoryArt = user.loot[series.name].inventoryArt
         if (artObj) {
-            const art = await this.extractArtSection(artObj, rarity)
+            const art = await this.extractArtSection(series.name, artObj, rarity)
             bg = await this.compositeBuffers(bg, art, 0, 0)
         }
         const slots = fs.readFileSync(`graphics/background/inventory_parts/slots.png`)

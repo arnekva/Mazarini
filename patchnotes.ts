@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.4.7'
+    public static readonly currentVersion = '37.0.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,9 +27,13 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '* MOL: Å fullføre en MOL-kategori gir nå en super-chest.',
-                '* MOL: Fikset ordlegging på Regjerings-kategorien.',
-                '* Effects: Velg MOL er skrudd av.',
+                '# LOOOOOOOOT',
+                '* Gjør dokk klare for KJLU!!',
+                '* Sattan så fett, ',
+                '* Økonomien e nullstilt',
+                '* Kjøb loot?? Alle har fått 5k chips og nullstilt daily??',
+                '### Teknisk',
+                '* Prøve nå on-the-fly generering av reveal gifs igjen',
             ].join('\n')
         )
         container.addSeparator()

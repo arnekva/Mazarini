@@ -19,11 +19,13 @@ import type { CCGCardGenerator as CCGCardGeneratorType } from '../../helpers/ccg
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import type { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
+import { InventoryArts } from '../../helpers/inventoryArts'
+import type { LootRevealGenerator as LootRevealGeneratorType } from '../../helpers/lootRevealGenerator'
 import { LootStatsHelper } from '../../helpers/statsHelper'
 import {
     ILootbox,
     ILootSeries,
-    ILootSeriesInventoryArt,
+    ILootStats,
     ItemColor,
     ItemRarity,
     IUserEffects,
@@ -71,7 +73,7 @@ export interface IEffectItem {
     effect(
         user: MazariniUser,
         db?: DatabaseHelper
-    ): undefined | ActionRowBuilder<ButtonBuilder>[] | 'client-update' | Promise<undefined | ActionRowBuilder<ButtonBuilder>[] | 'client-update'>
+    ): undefined | void | ActionRowBuilder<ButtonBuilder>[] | 'client-update' | Promise<undefined | ActionRowBuilder<ButtonBuilder>[] | 'client-update'>
     syncClientCache?: (client: MazariniClient, user: MazariniUser) => void | Promise<void>
     lootReward?: {
         type: LootType
@@ -108,6 +110,10 @@ export class LootboxCommands extends AbstractCommands {
             this.imageGenerator = new ImageGenerationHelper(this.client)
         }
         return this.imageGenerator
+    }
+
+    private getRevealGenerator() {
+        return require('../../helpers/lootRevealGenerator').LootRevealGenerator as typeof LootRevealGeneratorType
     }
 
     private getCardGenerator() {
@@ -149,21 +155,36 @@ export class LootboxCommands extends AbstractCommands {
         const user = await this.client.database.getUser(interaction.user.id)
         const series = this.resolveLootSeries(user, interaction)
         const seriesObj = await this.getSeriesOrDefault(series)
+        // Each background is an unlock - only ones you don't have yet can come up, and once you have them all there's nothing to buy
+        const unlocked = InventoryArts.unlocked(user.loot?.[seriesObj.name])
+        const locked = InventoryArts.forSeries(seriesObj).filter((art) => !unlocked.includes(art.name))
+        if (locked.length === 0) {
+            const reason = unlocked.length > 0 ? 'Du har allerede låst opp alle bakgrunnene i' : 'Det finnes ingen bakgrunner for'
+            return this.messageHelper.replyToInteraction(interaction, `${reason} ${seriesObj.name}`, { hasBeenDefered: true })
+        }
         if (interaction.isChatInputCommand()) {
             const moneyWasTaken = this.client.bank.takeMoney(user, GameValues.loot.artPrice)
             if (!moneyWasTaken) return this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te den', { hasBeenDefered: true })
         }
-        const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
-        sh.registerArt()
+        this.lootStats(user, seriesObj.name).registerArt()
 
-        const art = await this.getRandomInventoryArt(user, seriesObj)
+        const art = RandomUtils.getRandomItemFromList(locked)
+        user.loot[seriesObj.name].unlockedArts = [...unlocked, art.name]
         user.loot[seriesObj.name].inventoryArt = art
         await this.database.updateUser(user)
-        this.generateInventoryParts(user, series, [ItemRarity.Common, ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary])
+        this.generateInventoryParts(user, seriesObj.name, [ItemRarity.Common, ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary])
         const fs = require('fs')
-        const image = fs.readFileSync(`graphics/background/inventory_art/${art.name}.png`)
+        const image = fs.readFileSync(InventoryArts.imagePath(seriesObj.name, art))
         const file = new AttachmentBuilder(image, { name: 'background.png' })
-        this.messageHelper.replyToInteraction(interaction, 'Gratulerer med ny inventory-bakgrunn!', { hasBeenDefered: true }, undefined, [file])
+        const left = locked.length - 1
+        this.messageHelper.replyToInteraction(
+            interaction,
+            `Du låste opp **${InventoryArts.displayName(art)}**! Den er satt som inventory-bakgrunn - bytt med \`/loot inventory bakgrunn\`.` +
+                (left > 0 ? ` ${left} igjen å låse opp.` : ' Du har nå alle bakgrunnene i serien.'),
+            { hasBeenDefered: true },
+            undefined,
+            [file]
+        )
     }
 
     private async openAndRegisterLootbox(interaction: ChatInteraction | BtnInteraction) {
@@ -173,8 +194,7 @@ export class LootboxCommands extends AbstractCommands {
         const seriesObj = await this.getSeriesOrDefault(series)
         const box = await this.resolveLootbox(quality)
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
-        const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
-        sh.registerPurchase(box, false, interaction.isChatInputCommand())
+        this.lootStats(user, seriesObj.name).registerPurchase(box, false, interaction.isChatInputCommand())
 
         const rewardedItem = this.calculateRewardItem(box, seriesObj, user)
         this.registerItemOnUser(user, rewardedItem)
@@ -196,8 +216,7 @@ export class LootboxCommands extends AbstractCommands {
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
         // A re-roll is the same chest, not a new one
         if (!pendingChest) {
-            const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
-            sh.registerPurchase(box, true, interaction.isChatInputCommand())
+            this.lootStats(user, seriesObj.name).registerPurchase(box, true, interaction.isChatInputCommand())
         }
 
         let chestItems: IUserLootItem[] = new Array<IUserLootItem>()
@@ -210,7 +229,7 @@ export class LootboxCommands extends AbstractCommands {
             for (let i = 0; i < 3; i++) chestItems.push(this.calculateRewardItem(box, seriesObj, user))
         }
 
-        if (seriesObj.hasColor) this.database.updateUser(user) //update in case of effect change
+        this.database.updateUser(user) // saves the purchase stats, and any effect change from rolling colors
         const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
         this.revealLootChest(interaction, chestItems, quality, seriesObj, existingChestId, slotEffects)
     }
@@ -226,9 +245,7 @@ export class LootboxCommands extends AbstractCommands {
         const box = await this.resolveLootbox(quality, true)
         if (!box) return this.messageHelper.replyToInteraction(interaction, `Fant ingen pakke med kvalitet "${quality}". Prøv igjen.`, { hasBeenDefered: true })
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
-        this.ensureUserLootSeries(user, seriesObj.name)
-        const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
-        sh.registerPurchase(box, true, interaction.isChatInputCommand())
+        this.lootStats(user, seriesObj.name).registerPurchase(box, true, interaction.isChatInputCommand())
 
         const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
         for (let i = 0; i < 3; i++) {
@@ -269,11 +286,11 @@ export class LootboxCommands extends AbstractCommands {
         else if (interaction.isButton()) return interaction.customId.split(';')[2] ?? 'basic'
     }
 
-    /** "Basic loot chest", or "Arne chest" for one full of plain commons. A chest with nothing but commons (any color) also gets a kekw_boom. */
+    /** "Basic loot chest", or "Arne chest" (with a kekw_boom) for one full of plain, uncolored commons - one colored common is enough to spoil it */
     private chestTitle(items: IUserLootItem[], quality: string, accessPoint: ChatInteraction | BtnInteraction) {
-        const type = this.isArneChest(items) ? 'Arne' : SpecialChests.displayName(quality) + ' loot'
-        const onlyCommons = items.length > 0 && items.every((item) => item.rarity === ItemRarity.Common)
-        const boom = onlyCommons ? EmojiHelper.getEmoji('kekw_boom', accessPoint) : undefined
+        const isArne = this.isArneChest(items)
+        const type = isArne ? 'Arne' : SpecialChests.displayName(quality) + ' loot'
+        const boom = isArne ? EmojiHelper.getEmoji('kekw_boom', accessPoint) : undefined
         return `${type} chest${boom?.emojiObject ? ` ${boom.id}` : ''}`
     }
 
@@ -478,9 +495,10 @@ export class LootboxCommands extends AbstractCommands {
         const deferred = await this.messageHelper.deferReply(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const chestEmoji = await EmojiHelper.getEmoji('chest_open', interaction)
-        const embed = EmbedUtils.createSimpleEmbed(this.chestTitle(Array.from(pendingChest.items.values()), pendingChest.quality, interaction), `Åpner lootboxen!`).setThumbnail(
-            `https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`
-        )
+        const embed = EmbedUtils.createSimpleEmbed(
+            this.chestTitle(Array.from(pendingChest.items.values()), pendingChest.quality, interaction),
+            `Åpner lootboxen!`
+        ).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
         const disabledBtns = pendingChest.buttons.components.map((btn) => {
             btn.setDisabled(true)
             const btnProps: any = btn.toJSON()
@@ -625,14 +643,6 @@ export class LootboxCommands extends AbstractCommands {
         return { name: item, series: series.name, rarity: rarity, color: color, amount: 1, isCCG: series.isCCG ?? false }
     }
 
-    private getRandomInventoryArt(user: MazariniUser, series: ILootSeries) {
-        let art: ILootSeriesInventoryArt = RandomUtils.getRandomItemFromList(series.inventoryArts)
-        while (art.name === user.loot[series.name].inventoryArt.name) {
-            art = RandomUtils.getRandomItemFromList(series.inventoryArts)
-        }
-        return art
-    }
-
     private async getSeriesOrDefault(series: string, isPack: boolean = false): Promise<ILootSeries> {
         const lootboxSeries = (await this.getSeries()).filter((serie) => (isPack && serie.isCCG) || (!isPack && (!serie.isCCG || GameValues.ccg.isLootable)))
         const seriesName = series && series !== '' ? series : lootboxSeries.sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())[0].name
@@ -692,8 +702,12 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private registerItemOnUser(user: MazariniUser, newItem: IUserLootItem) {
-        if (newItem.rarity === ItemRarity.Unobtainable) return this.updateUnobtainableHolder(newItem.series, user)
         this.ensureUserLootSeries(user, newItem.series)
+        if (newItem.rarity === ItemRarity.Unobtainable) {
+            // still save the user - the box/chest purchase was already counted in their stats
+            this.client.database.updateUser(user)
+            return this.updateUnobtainableHolder(newItem.series, user)
+        }
         let items = (user.loot[newItem.series][`inventory`][newItem.rarity]['items'] as IUserLootItem[]) ?? new Array<IUserLootItem>()
         const itemAlreadyCollected = items.some((item) => this.equalItems(item, newItem))
         if (itemAlreadyCollected) {
@@ -703,9 +717,14 @@ export class LootboxCommands extends AbstractCommands {
         }
         user.loot[newItem.series][`inventory`][newItem.rarity]['img'] = ''
         user.loot[newItem.series][`inventory`][newItem.rarity]['items'] = items
-        const sh = new LootStatsHelper(user.loot[newItem.series].stats)
-        sh.registerItem(newItem)
+        this.lootStats(user, newItem.series).registerItem(newItem)
         this.client.database.updateUser(user)
+    }
+
+    /** Stats for the user's series, creating the series entry (or missing stats on an old one) first so a new series can't crash on it */
+    private lootStats(user: MazariniUser, seriesName: string) {
+        this.ensureUserLootSeries(user, seriesName)
+        return new LootStatsHelper(user.loot[seriesName].stats)
     }
 
     private async updateUnobtainableHolder(seriesName: string, user: MazariniUser) {
@@ -722,9 +741,25 @@ export class LootboxCommands extends AbstractCommands {
         for (const item of items) this.registerItemOnUser(user, item)
     }
 
-    /** Creates a blank loot series entry on the user if it doesn't exist yet */
+    /** Creates a blank loot series entry on the user if it doesn't exist yet, and blank stats on an entry that has none */
     private ensureUserLootSeries(user: MazariniUser, seriesName: string) {
-        if (user.loot?.[seriesName]) return
+        const blankStats = (): ILootStats => ({
+            chipsSpent: 0,
+            chestsOpened: { basic: 0, premium: 0, elite: 0, special: 0 },
+            boxesOpened: { basic: 0, premium: 0, elite: 0, special: 0 },
+            rarities: {
+                common: { none: 0, silver: 0, gold: 0, diamond: 0 },
+                rare: { none: 0, silver: 0, gold: 0, diamond: 0 },
+                epic: { none: 0, silver: 0, gold: 0, diamond: 0 },
+                legendary: { none: 0, silver: 0, gold: 0, diamond: 0 },
+            },
+            trades: { in: 0, up: 0 },
+            achievements: { daysWithUnobtainable: 0 },
+        })
+        if (user.loot?.[seriesName]) {
+            if (!user.loot[seriesName].stats) user.loot[seriesName].stats = blankStats()
+            return
+        }
         if (!user.loot) user.loot = {} as any
         user.loot[seriesName] = {
             name: seriesName,
@@ -735,19 +770,7 @@ export class LootboxCommands extends AbstractCommands {
                 epic: { items: [], img: '' },
                 legendary: { items: [], img: '' },
             },
-            stats: {
-                chipsSpent: 0,
-                chestsOpened: { basic: 0, premium: 0, elite: 0, special: 0 },
-                boxesOpened: { basic: 0, premium: 0, elite: 0, special: 0 },
-                rarities: {
-                    common: { none: 0, silver: 0, gold: 0, diamond: 0 },
-                    rare: { none: 0, silver: 0, gold: 0, diamond: 0 },
-                    epic: { none: 0, silver: 0, gold: 0, diamond: 0 },
-                    legendary: { none: 0, silver: 0, gold: 0, diamond: 0 },
-                },
-                trades: { in: 0, up: 0 },
-                achievements: { daysWithUnobtainable: 0 },
-            },
+            stats: blankStats(),
         }
     }
 
@@ -771,18 +794,49 @@ export class LootboxCommands extends AbstractCommands {
 
     private async revealCollectable(interaction: ChatInteraction | BtnInteraction, item: IUserLootItem, timer?: number) {
         if (item.isCCG) return this.revealCCGLoot()
-        const path = this.getGifPath(item)
-        const url = await this.client.database.getLootGifLink(path)
+        const mgItemBuilder = new MediaGalleryItemBuilder()
+        const files: AttachmentBuilder[] = []
+        if (this.getRevealGenerator().hasAssets(item.series)) {
+            const reveal = await this.generateReveal(item).catch((e) => {
+                this.messageHelper.sendLogMessage(`Klarte ikke å generere reveal for ${item.series} ${item.name} (${item.color}): ${e}`)
+                return undefined
+            })
+            if (!reveal) {
+                const name = await this.getItemDisplayName(item)
+                return this.messageHelper.replyToInteraction(interaction, `Du fikk ${name} (${item.rarity}, ${item.color})`, { hasBeenDefered: true })
+            }
+            files.push(new AttachmentBuilder(reveal, { name: 'reveal.webp' }))
+            mgItemBuilder.setURL('attachment://reveal.webp')
+        } else {
+            mgItemBuilder.setURL(await this.client.database.getLootGifLink(this.getGifPath(item)))
+        }
         const container = new SimpleContainer()
         const mg = new MediaGalleryBuilder()
-        const mgItemBuilder = new MediaGalleryItemBuilder()
-        mgItemBuilder.setURL(url)
         mg.addItems(mgItemBuilder)
         container.addComponent(mg, 'loot-gif')
         const color = (interaction.member as GuildMember).displayColor
         container.setColor(color)
-        const reply = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [container.container])
+        const reply = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [container.container], files)
         this.addReaction(reply, item, timer)
+    }
+
+    /** Built on every open (~0.7s) instead of stored. The motive is the series' full-size file, or the item's emoji if there's none */
+    private async generateReveal(item: IUserLootItem): Promise<Buffer> {
+        const generator = this.getRevealGenerator()
+        const motive = generator.localMotive(item) ?? (await this.getEmojiMotive(item))
+        return generator.generate(item, motive, await this.getItemDisplayName(item))
+    }
+
+    /** Discord keeps application emojis at 128x128, so this is only the fallback for a missing motive file */
+    private async getEmojiMotive(item: IUserLootItem): Promise<Buffer> {
+        const emoji = await this.getLootApplicationEmoji(item)
+        if (!emoji.emojiObject) throw new Error('fant hverken motivfil eller emoji')
+        return Buffer.from(await (await fetch(emoji.emojiObject.imageURL({ extension: 'png', size: 128 }))).arrayBuffer())
+    }
+
+    private async getItemDisplayName(item: IUserLootItem): Promise<string> {
+        const series = (await this.getSeries()).find((serie) => serie.name === item.series)
+        return series?.displayNames?.[item.name] ?? TextUtils.formatRevealGifString(item.name)
     }
 
     private async revealCCGLoot() {
@@ -791,6 +845,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private async addReaction(reply: Message | InteractionResponse, item: IUserLootItem, timer?: number) {
         const emoji = await this.getLootApplicationEmoji(item)
+        if (!emoji.emojiObject) return // new series may not have its emojis uploaded yet
         let msg = undefined
         if (reply instanceof InteractionResponse) {
             msg = await reply.fetch()
@@ -831,13 +886,41 @@ export class LootboxCommands extends AbstractCommands {
         const cmd = interaction.options.getSubcommand()
         const series = await this.getSeries()
         let filteredSeries = series
-        if (cmd === 'art') filteredSeries = filteredSeries.filter((serie) => serie.inventoryArts && serie.inventoryArts.length > 0)
+        if (cmd === 'art') filteredSeries = filteredSeries.filter((serie) => InventoryArts.forSeries(serie).length > 0)
         else if (cmd === 'pack') filteredSeries = filteredSeries.filter((serie) => serie.isCCG)
         else filteredSeries = filteredSeries.filter((series) => !series.isCCG || GameValues.ccg.isLootable)
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
         interaction.respond(
             filteredSeries.filter((series) => series.name.toLowerCase().includes(input)).map((series) => ({ name: series.name, value: series.name }))
+        )
+    }
+
+    /** Switches to one of the user's unlocked backgrounds and starts regenerating the inventory with it. Returns an error message if it can't */
+    private async setInventoryBackground(user: MazariniUser, series: ILootSeries, name: string): Promise<string | undefined> {
+        const art = InventoryArts.forSeries(series).find((a) => a.name === name)
+        if (!art || !InventoryArts.unlocked(user.loot?.[series.name]).includes(name)) return 'Du har ikke låst opp den bakgrunnen'
+        this.ensureUserLootSeries(user, series.name)
+        user.loot[series.name].unlockedArts = InventoryArts.unlocked(user.loot[series.name]) // keeps a pre-unlock purchase once it's been switched away from
+        user.loot[series.name].inventoryArt = art
+        // saved before regenerating - that re-reads and saves the user too, and must not overwrite the new choice
+        await this.database.updateUser(user)
+        // queues the update synchronously, so printInventory waits for the new images
+        this.generateInventoryParts(user, series.name, [ItemRarity.Common, ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary])
+        return undefined
+    }
+
+    private async backgroundAutocomplete(interaction: ATCInteraction) {
+        const user = await this.client.database.getUser(interaction.user.id)
+        const seriesParam = (interaction.options.get('series')?.value as string) ?? user.userSettings?.activeLootSeries
+        const series = await this.getSeriesOrDefaultForInventory(seriesParam)
+        const unlocked = InventoryArts.unlocked(user.loot?.[series.name])
+        const input = ((interaction.options as any).getFocused() as string).toLowerCase()
+        interaction.respond(
+            InventoryArts.forSeries(series)
+                .filter((art) => unlocked.includes(art.name) && InventoryArts.displayName(art).toLowerCase().includes(input))
+                .slice(0, 25)
+                .map((art) => ({ name: InventoryArts.displayName(art), value: art.name }))
         )
     }
 
@@ -849,6 +932,11 @@ export class LootboxCommands extends AbstractCommands {
         let user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = this.resolveLootSeries(user, interaction)
         const series = await this.getSeriesOrDefaultForInventory(seriesParam)
+        const chosenBackground = interaction.isChatInputCommand() ? (interaction.options.get('bakgrunn')?.value as string) : undefined
+        if (chosenBackground) {
+            const error = await this.setInventoryBackground(user, series, chosenBackground)
+            if (error) return this.messageHelper.replyToInteraction(interaction, error, { hasBeenDefered: true })
+        }
         let attempts = 0
         const intervalId = setInterval(async () => {
             attempts++
@@ -1072,11 +1160,11 @@ export class LootboxCommands extends AbstractCommands {
 
     private getUserLoot(user: MazariniUser, filter?: { series: string; rarity: string }) {
         const loot = new Array<IUserLootItem>()
-        const series = filter ? [filter.series] : ['mazarini', 'sw', 'hp', 'lotr', 'lootfice'] // Don't add CCG series here
+        const series = filter ? [filter.series] : (this.series ?? []).filter((serie) => !serie.isCCG).map((serie) => serie.name)
         const rarities = filter ? [filter.rarity] : ['common', 'rare', 'epic', 'legendary']
         for (const serie of series) {
             for (const rarity of rarities) {
-                const items = user.loot[serie].inventory[rarity].items
+                const items = user.loot?.[serie]?.inventory?.[rarity]?.items
                 if (items) loot.push(...items)
             }
         }
@@ -1230,8 +1318,7 @@ export class LootboxCommands extends AbstractCommands {
         while (this.itemIsSameAsTradedIn(rewardedItem, pendingTrade.tradingIn)) {
             rewardedItem = this.getRandomItemForRarity(pendingTrade.receiving, seriesObj, colored, user)
         }
-        const sh = new LootStatsHelper(user.loot[rewardedItem.series].stats)
-        sh.registerTrade(pendingTrade.tradingIn.length === 5)
+        this.lootStats(user, rewardedItem.series).registerTrade(pendingTrade.tradingIn.length === 5)
         this.removeItemsFromUser(pendingTrade.tradingIn, user)
         this.registerItemOnUser(user, rewardedItem)
         this.generateInventoryParts(user, pendingTrade.series, [...new Set([pendingTrade.receiving, pendingTrade.tradingIn[0].rarity])])
@@ -1295,6 +1382,7 @@ export class LootboxCommands extends AbstractCommands {
         const optionList: any = interaction.options
         const focused = optionList._hoistedOptions.find((option) => option.focused)
         if (focused.name === 'series') this.seriesAutocomplete(interaction)
+        else if (focused.name === 'bakgrunn') this.backgroundAutocomplete(interaction)
         else if (focused.name.includes('quality')) this.qualityAutocomplete(interaction)
         else if (focused.name.includes('item')) this.itemAutocomplete(interaction)
     }
@@ -1320,7 +1408,7 @@ export class LootboxCommands extends AbstractCommands {
             if (holder && holder.length > 0) {
                 const user = await this.database.getUser(holder)
                 if (user) {
-                    user.loot[series.name].stats.achievements.daysWithUnobtainable++
+                    this.lootStats(user, series.name).registerDayWithUnobtainable()
                     this.database.updateUser(user)
                 }
             }
@@ -1440,7 +1528,7 @@ const chestMarkerEffects: Array<IEffectItem> = [
     {
         label: 'deal_or_no_deal',
         message: '',
-        effect: () => {},
+        effect: (): void => {},
     },
 ]
 

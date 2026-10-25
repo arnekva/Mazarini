@@ -67,5 +67,10 @@
         "prettier": "^2.3.0",
         "prettier-plugin-organize-imports": "^2.0.0",
         "ts-node": "^10.7.0"
+    },
+    "overrides": {
+        "ultimate-text-to-image": {
+            "canvas": "$canvas"
+        }
     }
 }

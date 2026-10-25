@@ -4,9 +4,13 @@ import { MazariniClient } from '../client/MazariniClient'
 import { hpCCG } from '../commands/ccg/cards/hpCCG'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
 import { swCCG } from '../commands/ccg/cards/swCCG'
+import { Mastermind } from '../commands/games/mastermind'
 import { MoreOrLess } from '../commands/games/moreOrLess'
+import { GameValues } from '../general/values'
 import { CCGCardGenerator } from '../helpers/ccgCardGenerator'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
+import { generateDailyHubChallenges } from '../Jobs/dailyHubChallengesJob'
+import { RandomUtils } from '../utils/randomUtils'
 import {
     ICCGDeck,
     ILootbox,
@@ -61,7 +65,10 @@ export class Scripts {
         )
     }
 
+    /** Economy reset: chips, shards and daily back to start, and every token and effect gone (DPN and other buffs, DOND tokens, Velg MOL tokens).
+     * The day's daily-hub puzzles and Mastermind code are replaced too - with everyone's progress wiped, the old ones could be solved again from memory. */
     public async resetChipsAndShardsAndDaily() {
+        await this.regenerateDailyTasks()
         const users = await this.client.database.getAllUsers()
         for (const user of users) {
             user.chips = 5000
@@ -69,8 +76,21 @@ export class Scripts {
             user.daily = { ...user.daily, claimedToday: false }
             user.dailySpins = 1
             user.dailyGameStats = {}
+            user.effects = { positive: {}, negative: {} }
+            user.dondTokens = {}
+            user.molTokens = 0
             await this.client.database.updateUser(user)
         }
+    }
+
+    /** New flag/outline/capital puzzles and a new Mastermind code, the same as the daily job makes */
+    public async regenerateDailyTasks() {
+        const users = await this.client.database.getAllUsers()
+        const status = await generateDailyHubChallenges(this.client, users)
+        if (status !== 'success') throw new Error('Klarte ikke å lage nye daily hub-utfordringer')
+        const solution = Array.from({ length: GameValues.mastermind.codeLength }, () => RandomUtils.getRandomItemFromList(Mastermind.colors))
+        if (this.client.cache) this.client.cache.mastermindSolution = solution
+        this.client.database.setMastermindSolution(solution)
     }
 
     public async resetChipsAndPerks() {
@@ -211,6 +231,53 @@ export class Scripts {
         const allSeries = await this.client.database.getLootboxSeries()
         if (!allSeries.some((series) => series.name === lootfice_series.name)) allSeries.push(lootfice_series)
         this.client.database.setLootSeries(allSeries)
+    }
+
+    /** Adds the KJLU series, or updates its item lists and names if it's already there (keeps added date and unobtainable holder).
+     * Being the newest series makes it the default - so everyone's old "default loot series" setting is cleared too. */
+    public async addKjluSeries() {
+        const users = await this.client.database.getAllUsers()
+        for (const user of users) {
+            const movedLoot = this.moveKjcuLootToKjlu(user)
+            const hadSetting = !!user.userSettings?.activeLootSeries
+            if (hadSetting) user.userSettings.activeLootSeries = ''
+            if (movedLoot || hadSetting) await this.client.database.updateUser(user)
+        }
+        // 'kjcu' was the series' name before launch - if the old version of this script added it, it's replaced (keeping its added date and holder)
+        const current = (await this.client.database.getLootboxSeries()) ?? []
+        const old = current.find((series) => series.name === 'kjcu')
+        const allSeries = current.filter((series) => series.name !== 'kjcu')
+        const existing = allSeries.find((series) => series.name === kjlu_series.name) ?? old
+        const series = { ...kjlu_series, added: existing?.added ?? kjlu_series.added, unobtainableHolder: existing?.unobtainableHolder ?? '' }
+        const hasKjlu = allSeries.some((s) => s.name === series.name)
+        this.client.database.setLootSeries(hasKjlu ? allSeries.map((s) => (s.name === series.name ? series : s)) : [...allSeries, series])
+    }
+
+    /** Moves anything a user got while the series was called 'kjcu' (items, stats, pity, background) over to 'kjlu'. Returns whether anything moved. */
+    private moveKjcuLootToKjlu(user: MazariniUser): boolean {
+        const old = (user.loot as any)?.kjcu as IUserLootSeries | undefined
+        if (!old) return false
+        const renamed = (items?: IUserLootItem[]) => (items ?? []).map((item) => ({ ...item, series: 'kjlu' }))
+        const target = user.loot.kjlu
+        if (!target) {
+            user.loot.kjlu = { ...old, name: 'kjlu' }
+            for (const rarity of ['common', 'rare', 'epic', 'legendary']) {
+                if (old.inventory?.[rarity]) user.loot.kjlu.inventory[rarity] = { items: renamed(old.inventory[rarity].items), img: '' } // images are regenerated
+            }
+        } else {
+            // both exist (someone played under both names): keep kjlu's entry and add the old items to it
+            for (const rarity of ['common', 'rare', 'epic', 'legendary']) {
+                const merged = [...(target.inventory?.[rarity]?.items ?? [])]
+                for (const item of renamed(old.inventory?.[rarity]?.items)) {
+                    const same = merged.find((m) => m.name === item.name && m.color === item.color)
+                    if (same) same.amount += item.amount
+                    else merged.push(item)
+                }
+                target.inventory[rarity] = { items: merged, img: '' }
+            }
+        }
+        delete (user.loot as any).kjcu
+        return true
     }
 
     public setLootPacks() {
@@ -606,6 +673,56 @@ const lootfice_series: ILootSeries = {
     legendary: lootfice.filter((entry) => entry.rarity === ItemRarity.Legendary).map((entry) => entry.name),
     hasColor: true,
     hasUnobtainable: false,
+}
+
+/** Item ids are also emoji names (kjlu_<id>_<n|s|g|d>), so they must be a-z, 0-9 and _ only - real names go in displayNames */
+const kjlu_items: Record<Exclude<ItemRarity, ItemRarity.Unobtainable>, Record<string, string>> = {
+    [ItemRarity.Common]: {
+        kyrre_haugen_sydness: 'Kyrre Haugen Sydness',
+        tom_cruise: 'Tom Cruise',
+        leonardo_dicaprio: 'Leonardo DiCaprio',
+        dag_solstad: 'Dag Solstad',
+        ane_dahl_torp: 'Ane Dahl Torp',
+    },
+    [ItemRarity.Rare]: {
+        marko_kanic: 'Marko Kanic',
+        julanissen: 'Julanissen',
+        bjarte_tjostheim: 'Bjarte Tjøstheim',
+        rolf_kristian_larsen: 'Rolf Kristian Larsen',
+        pal_sverre_hagen: 'Pål Sverre Hagen',
+    },
+    [ItemRarity.Epic]: {
+        silje_salomonsen: 'Silje Salomonsen',
+        arthur_berning: 'Arthur Berning',
+        tore_renberg: 'Tore Renberg',
+        asgeir: 'Asgeir',
+        per_inge_torkelsen: 'Per Inge Torkelsen',
+    },
+    [ItemRarity.Legendary]: {
+        kj: 'KJ',
+        vegar_hoel: 'Vegar Hoel',
+        pia_tjelta: 'Pia Tjelta',
+        bjorn_sundquist: 'Bjørn Sundquist',
+        sally_nilsson: 'Sally Nilsson',
+    },
+}
+
+const kjlu_series: ILootSeries = {
+    name: 'kjlu',
+    added: new Date(),
+    common: Object.keys(kjlu_items.common),
+    rare: Object.keys(kjlu_items.rare),
+    epic: Object.keys(kjlu_items.epic),
+    legendary: Object.keys(kjlu_items.legendary),
+    hasColor: true,
+    hasUnobtainable: true,
+    displayNames: {
+        ...kjlu_items.common,
+        ...kjlu_items.rare,
+        ...kjlu_items.epic,
+        ...kjlu_items.legendary,
+        unobtainable: '50/50 blanding av himmelske safter og kugdiesel',
+    },
 }
 
 export interface gifTemplate {

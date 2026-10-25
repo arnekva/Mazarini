@@ -653,7 +653,7 @@ Bruk den i Activities for å spille.`
                         required: false,
                         min_values: 0,
                         options: [
-                            { value: 'reset_chips_shards_daily', label: 'Reset chips (5000), shards (50) og daily for alle' },
+                            { value: 'reset_chips_shards_daily', label: 'Reset chips (5000), shards (50), daily, DPN/effects, DOND- og Velg MOL-tokens for alle' },
                             { value: 'add_shards_100', label: 'Gi alle 100 shards' },
                             {
                                 value: 'hp_wipe_reset',
@@ -661,6 +661,7 @@ Bruk den i Activities for å spille.`
                             },
                             { value: 'clear_user_cache', label: 'Tøm brukercache (tvinger ny henting fra Firebase)' },
                             { value: 'seed_mol_blacklist', label: 'Push MOL-blacklist (hardkodet liste) til Firebase' },
+                            { value: 'add_kjlu_series', label: 'Legg til KJLU-serien og gjør den til default (nullstiller valgt loot-serie)' },
                         ],
                     },
                 },
@@ -703,6 +704,15 @@ Bruk den i Activities for å spille.`
             const blacklist = await scripts.seedMoreOrLessBlacklist()
             results.push(`MOL-blacklist pushet til Firebase: ${blacklist.length} kategorier.`)
             this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} pushet MOL-blacklist til Firebase (${blacklist.length} kategorier).`)
+        }
+        if (selected.includes('add_kjlu_series')) {
+            const scripts = new Scripts(this.client)
+            await scripts.addKjluSeries()
+            this.client.database.clearUserCache() // every user's default loot series was just reset
+            results.push(
+                'KJLU-serien er lagt til (en gammel KJCU-serie er erstattet, og loot/stats fra KJCU er flyttet over), og alles valgte loot-serie er nullstilt. Restart botten for at den skal bli default (serielisten caches).'
+            )
+            this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} la til KJLU-serien og nullstilte alles valgte loot-serie.`)
         }
 
         await modalInteraction.editReply(results.length ? results.join('\n') : 'Ingenting valgt.')
