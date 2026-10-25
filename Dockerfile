@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---------- build stage ----------
-FROM node:20-bookworm AS build
+FROM node:24-bookworm AS build
 WORKDIR /app
 
 # Native build toolchain for canvas/sharp
@@ -17,7 +17,7 @@ COPY . .
 RUN npm run bundle
 
 # ---------- runtime stage ----------
-FROM node:20-bookworm-slim
+FROM node:24-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production
 # Default timezone (overridable via the TZ env var in compose). Node reads TZ at startup.
