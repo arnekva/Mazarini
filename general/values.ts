@@ -297,12 +297,12 @@ export const GameValues: GameValuesType = {
         potWin: {
             winOn: 69,
             minTarget: 10000,
-            noThanksThreshold: 10000,
-            noThanksBonus: 2500,
+            noThanksThreshold: 9999,
+            noThanksBonus: 2000,
         },
         autoCompleteDiceDefault: 10002,
         printCurrentStateMaxFields: 25,
-        canGetFreeBlackackRedeal: true,
+        canGetFreeBlackackRedeal: false,
         shuffleIgnoresDigitsDefault: false,
     },
 
@@ -315,7 +315,7 @@ export const GameValues: GameValuesType = {
             tier4: 200, // 31-40
             tier5: 200, // 41-50
             tier6: 50, // 51+
-            completed: 1000, // flat bonus for completing the category the first time today
+            completed: 1000,
             bestAttempt: 2500,
             bestAttemptShards: 5,
         },
