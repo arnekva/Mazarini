@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '37.0.0'
+    public static readonly currentVersion = '37.0.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,17 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '# LOOOOOOOOT',
-                '* Gjør dokk klare for KJLU!!',
-                '* Sattan så fett, ',
-                '* Økonomien e nullstilt',
-                '* Kjøb loot?? Alle har fått 5k chips og nullstilt daily??',
-                '### Teknisk',
-                '* Prøve nå on-the-fly generering av reveal gifs igjen',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['* Fikser en feil som ga Super Chest på fullført MOL. Gir nå 1000 chips.'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

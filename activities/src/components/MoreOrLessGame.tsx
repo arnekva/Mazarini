@@ -1,6 +1,7 @@
 "use client"
 
 import { callApi } from "@/lib/apiClient"
+import { moreOrLessValues } from "@/lib/gameValues"
 import { proxyImageUrl } from "@/lib/imgProxy"
 import { useEffect, useState } from "react"
 import contentStyles from "./GameContent.module.css"
@@ -43,8 +44,8 @@ interface GuessResponse {
   chips?: number
   revealedNext?: Item
   completedNow?: boolean
-  /** First completion today - a Super chest is waiting in the channel the Activity was started from. */
-  superChest?: boolean
+  /** First completion today - `reward` includes the flat completion bonus. */
+  completionBonus?: boolean
   bestAttempt?: number
   numAttempts?: number
   liveReward?: number
@@ -74,7 +75,7 @@ function valueText(item: Item, strings: MolStrings | undefined, isYear: boolean)
 interface RoundResult {
   correct: boolean
   completed: boolean
-  superChest: boolean
+  completionBonus: boolean
   reward: number
   /** How many were right in the round that just ended. */
   score: number
@@ -172,7 +173,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
         setResult({
           correct: !!res.correct,
           completed: !!res.completedNow,
-          superChest: !!res.superChest,
+          completionBonus: !!res.completionBonus,
           reward: res.reward ?? 0,
           score: res.correctAnswers ?? correctAnswers,
           revealed: res.revealedNext,
@@ -267,7 +268,7 @@ function RoundResultCard({ result, strings, isYear, best }: { result: RoundResul
           {relation} {previous.subject} ({valueText(previous, strings, isYear)})
         </div>
       )}
-      {result.superChest && <div className={styles.resultCompare}>Du får en Super chest! Åpne den i kanalen.</div>}
+      {result.completionBonus && <div className={styles.resultCompare}>Fullført! Inkludert {moreOrLessValues.rewards.completed} chips i bonus.</div>}
 
       <div className={styles.resultStats}>
         <div className={styles.resultStat}>

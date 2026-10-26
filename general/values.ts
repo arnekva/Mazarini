@@ -91,6 +91,7 @@ export type GameValuesType = {
             tier4: number
             tier5: number
             tier6: number
+            completed: number
             bestAttempt: number
             bestAttemptShards: number
         }
@@ -314,6 +315,7 @@ export const GameValues: GameValuesType = {
             tier4: 200, // 31-40
             tier5: 200, // 41-50
             tier6: 50, // 51+
+            completed: 1000, // flat bonus for completing the category the first time today
             bestAttempt: 2500,
             bestAttemptShards: 5,
         },
