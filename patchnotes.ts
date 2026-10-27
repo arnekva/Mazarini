@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '37.0.1'
+    public static readonly currentVersion = '37.0.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,15 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['* Fikser en feil som ga Super Chest på fullført MOL. Gir nå 1000 chips.'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            [
+                '* Du får nå alternativer på hovedsteder',
+                '* 500 -> 400 chips per korrekte guess',
+                '* Slight lykkehjul nerf',
+                '* Halo eer tilbake på looten',
+                '* Fikset at det stod "KJ" i stedet for Kristoffer Joneer i reveal',
+            ].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

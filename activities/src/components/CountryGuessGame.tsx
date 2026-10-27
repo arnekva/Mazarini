@@ -17,13 +17,11 @@ interface Challenge {
   viewBox?: string
 }
 
-// Capital names double as the answer list here, which would make an always-visible suggestion
-// dropdown basically a multiple-choice picker - so it gets none, unlike flag/outline's country names
-// (which are just a spelling aid, not the thing being guessed).
+// The dropdown is a spelling aid - for capitals it lists every capital, so it still doesn't give the answer away.
 const suggestionsByGame: Record<CountryGameId, string[]> = {
   flag: countryNames,
   outline: countryNames,
-  capital: [],
+  capital: capitalNames,
 }
 
 /** Where the game stands - what the server answers with on opening the page and after every guess or skip. */

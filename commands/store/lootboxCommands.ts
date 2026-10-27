@@ -835,7 +835,12 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async getItemDisplayName(item: IUserLootItem): Promise<string> {
-        const series = (await this.getSeries()).find((serie) => serie.name === item.series)
+        return this.displayNameIn(await this.getSeries(), item)
+    }
+
+    /** The item's real name from its series (item ids are emoji-safe, e.g. 'kj' for Kristoffer Joner) */
+    private displayNameIn(allSeries: ILootSeries[], item: IUserLootItem): string {
+        const series = allSeries.find((serie) => serie.name === item.series)
         return series?.displayNames?.[item.name] ?? TextUtils.formatRevealGifString(item.name)
     }
 
@@ -1121,29 +1126,29 @@ export class LootboxCommands extends AbstractCommands {
         else this.secondaryItemsAutocomplete(interaction, user, isTradeUp)
     }
 
-    private firstItemAutocomplete(interaction: ATCInteraction, user: MazariniUser, filterOutLegendaries: boolean) {
+    private async firstItemAutocomplete(interaction: ATCInteraction, user: MazariniUser, filterOutLegendaries: boolean) {
         const optionList: any = interaction.options
         const collectables = this.getSortedCollectables(user, filterOutLegendaries)
-        interaction.respond(
-            collectables
-                .filter((item) => this.collectableToString(item).includes(optionList.getFocused().toLowerCase()))
-                .slice(0, 25)
-                .map((item) => ({ name: `${item.name} (${item.color}) x${item.amount}`, value: this.collectableToString(item) }))
-        )
+        interaction.respond(await this.itemChoices(collectables, optionList.getFocused()))
     }
 
-    private secondaryItemsAutocomplete(interaction: ATCInteraction, user: MazariniUser, filterOutLegendaries: boolean) {
+    private async itemChoices(collectables: IUserLootItem[], focused: string) {
+        const allSeries = await this.getSeries()
+        const search = focused.toLowerCase()
+        return collectables
+            .map((item) => ({ item, name: this.displayNameIn(allSeries, item) }))
+            .filter(({ item, name }) => this.collectableToString(item).includes(search) || name.toLowerCase().includes(search))
+            .slice(0, 25)
+            .map(({ item, name }) => ({ name: `${name} (${item.color}) x${item.amount}`, value: this.collectableToString(item) }))
+    }
+
+    private async secondaryItemsAutocomplete(interaction: ATCInteraction, user: MazariniUser, filterOutLegendaries: boolean) {
         const optionList: any = interaction.options
         const allItems = optionList._hoistedOptions
         const filter = this.getSortFilter(allItems.find((item) => item.name === 'item1')?.value)
         const collectables = this.getSortedCollectables(user, filterOutLegendaries, filter)
         const filteredCollectables = this.removeSelectedItems(collectables, allItems)
-        interaction.respond(
-            filteredCollectables
-                .filter((item) => this.collectableToString(item).includes(optionList.getFocused().toLowerCase()))
-                .slice(0, 25)
-                .map((item) => ({ name: `${item.name} (${item.color}) x${item.amount}`, value: this.collectableToString(item) }))
-        )
+        interaction.respond(await this.itemChoices(filteredCollectables, optionList.getFocused()))
     }
 
     private getSortedCollectables(user: MazariniUser, filterOutLegendaries: boolean, filter?: { series: string; rarity: string }) {
@@ -1269,13 +1274,14 @@ export class LootboxCommands extends AbstractCommands {
         }
         const tradeID = randomUUID()
         this.pendingTrades.set(tradeID, pendingTrade)
-        const collectableNames = this.getCollectableNamesPrintString(inputAsCollectables)
+        const collectableNames = await this.getCollectableNamesPrintString(inputAsCollectables)
         const embed = EmbedUtils.createSimpleEmbed('Trade', `Er du sikker på at du vil bytte: \n${collectableNames}\nfor en ny ${tradingToRarity} gjenstand?`)
         const buttons = tradeButtons(tradeID)
         this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, [buttons])
     }
 
-    private getCollectableNamesPrintString(collectables: IUserLootItem[]): string {
+    private async getCollectableNamesPrintString(collectables: IUserLootItem[]): Promise<string> {
+        const allSeries = await this.getSeries()
         const mergedCollectables = collectables.reduce((acc, current) => {
             const existing = acc.find((item) => this.collectableToString(item) === this.collectableToString(current))
             if (existing) existing.amount += current.amount
@@ -1283,7 +1289,7 @@ export class LootboxCommands extends AbstractCommands {
             return acc
         }, new Array<IUserLootItem>())
         return mergedCollectables.reduce((acc, current) => {
-            return acc + `${current.amount}x ${current.name} (${current.color})\n`
+            return acc + `${current.amount}x ${this.displayNameIn(allSeries, current)} (${current.color})\n`
         }, '\n')
     }
 
@@ -1307,7 +1313,7 @@ export class LootboxCommands extends AbstractCommands {
             await this.messageHelper.replyToInteraction(interaction, 'Du har ikke alle gjenstandene du prøver å bytte inn.', { hasBeenDefered: true })
             return this.cancelTrade(interaction)
         }
-        const collectableNames = this.getCollectableNamesPrintString(pendingTrade.tradingIn)
+        const collectableNames = await this.getCollectableNamesPrintString(pendingTrade.tradingIn)
         const embed = EmbedUtils.createSimpleEmbed('Trade', `Bytter inn: \n${collectableNames}\nfor en ${pendingTrade.receiving} gjenstand`)
         interaction.message.edit({ embeds: [embed], components: [] })
         const colorChance = this.getTradeColorChance(pendingTrade.tradingIn)

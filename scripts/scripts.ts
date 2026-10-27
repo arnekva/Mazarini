@@ -699,7 +699,7 @@ const kjlu_items: Record<Exclude<ItemRarity, ItemRarity.Unobtainable>, Record<st
         per_inge_torkelsen: 'Per Inge Torkelsen',
     },
     [ItemRarity.Legendary]: {
-        kj: 'KJ',
+        kj: 'Kristoffer Joner',
         vegar_hoel: 'Vegar Hoel',
         pia_tjelta: 'Pia Tjelta',
         bjorn_sundquist: 'Bjørn Sundquist',
@@ -707,7 +707,7 @@ const kjlu_items: Record<Exclude<ItemRarity, ItemRarity.Unobtainable>, Record<st
     },
 }
 
-const kjlu_series: ILootSeries = {
+export const kjlu_series: ILootSeries = {
     name: 'kjlu',
     added: new Date(),
     common: Object.keys(kjlu_items.common),
@@ -840,18 +840,17 @@ const lotrInventoryArts: ILootSeriesInventoryArt[] = [
     { name: 'Witch_King', opacity: 0.5 },
 ]
 
-// Total weight: 114. 500 chips = 36/114 ≈ 31.6% (weight unchanged from before the shard slices were added).
-// Each other chip tier (×9) = 6/114 ≈ 5.3%. Each shard tier (×4) = 6/114 ≈ 5.3%.
-const luckyWheelRewards: ILuckyWheelReward[] = [
+// Total weight: 100. Each 500 chips slice = 17%, every other chip slice = 5%, the loot chest = 1%.
+export const luckyWheelRewards: ILuckyWheelReward[] = [
     { name: '4000 chips', type: LuckyWheelRewardType.chips, amount: 4000, weight: 5 },
     { name: '3000 chips', type: LuckyWheelRewardType.chips, amount: 3000, weight: 5 },
     { name: '2500 chips', type: LuckyWheelRewardType.chips, amount: 2500, weight: 5 },
     { name: '2000 chips', type: LuckyWheelRewardType.chips, amount: 2000, weight: 5 },
     { name: '1500 chips', type: LuckyWheelRewardType.chips, amount: 1500, weight: 5 },
     { name: '1000 chips', type: LuckyWheelRewardType.chips, amount: 1000, weight: 5 },
-    { name: '500 chips', type: LuckyWheelRewardType.chips, amount: 500, weight: 10 },
+    { name: '500 chips', type: LuckyWheelRewardType.chips, amount: 500, weight: 17 },
     { name: 'Loot chest', type: LuckyWheelRewardType.chest, quality: LootboxQuality.Basic, weight: 1 },
-    { name: '500 chips', type: LuckyWheelRewardType.chips, amount: 500, weight: 10 },
+    { name: '500 chips', type: LuckyWheelRewardType.chips, amount: 500, weight: 17 },
     { name: '1000 chips', type: LuckyWheelRewardType.chips, amount: 1000, weight: 5 },
     { name: '1500 chips', type: LuckyWheelRewardType.chips, amount: 1500, weight: 5 },
     { name: '2000 chips', type: LuckyWheelRewardType.chips, amount: 2000, weight: 5 },

@@ -26,9 +26,9 @@ export const countryChallengeValues = {
   /** Wrong guesses allowed on one item before its answer is shown and the next comes up. */
   maxAttempts: 3,
   /** Chips for each item guessed right, when a game has several. */
-  rewardPerCorrect: 500,
+  rewardPerCorrect: 400,
   /** Chips for solving the one item of a game that has just one. */
-  singleItemReward: 500,
+  singleItemReward: 400,
 }
 
 export const moreOrLessValues = {

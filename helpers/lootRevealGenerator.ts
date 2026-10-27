@@ -20,7 +20,7 @@ const MAX_SINGLE_LINE_LENGTH = 24
 const rarityBand: Record<ItemRarity, { glow: string; edge: string }> = {
     [ItemRarity.Common]: { glow: '#9aa4b1', edge: '#4b5563' },
     [ItemRarity.Rare]: { glow: '#4aa3ff', edge: '#1e3a8a' },
-    [ItemRarity.Epic]: { glow: '#b06bff', edge: '#4c1d95' },
+    [ItemRarity.Epic]: { glow: '#9d2bff', edge: '#4a0a8c' },
     [ItemRarity.Legendary]: { glow: '#ffb02e', edge: '#9a3412' },
     [ItemRarity.Unobtainable]: { glow: '#ff3b3b', edge: '#7f1d1d' },
 }
@@ -31,6 +31,14 @@ const foilTint: Record<ItemColor, string | undefined> = {
     [ItemColor.Silver]: '#dfe7f5',
     [ItemColor.Gold]: '#ffb81c',
     [ItemColor.Diamond]: '#6fd8ff',
+}
+
+/** The halo behind the motive - an uncoloured item glows in its rarity's colour instead */
+const haloColor: Record<ItemColor, string | undefined> = {
+    [ItemColor.None]: undefined,
+    [ItemColor.Silver]: '#e8eef8',
+    [ItemColor.Gold]: '#ffc93c',
+    [ItemColor.Diamond]: '#7fe3ff',
 }
 
 const nameColor: Record<ItemColor, string> = {
@@ -90,13 +98,38 @@ export class LootRevealGenerator {
             .resize({ width: Math.round(width * 0.9), height: motiveSpace, fit: 'inside' })
             .toBuffer({ resolveWithObject: true })
 
+        const itemTop = height - itemImage.info.height
+        const itemLeft = Math.round((width - itemImage.info.width) / 2)
+        const halo = this.buildHalo(item, width, height, {
+            x: itemLeft + itemImage.info.width / 2,
+            y: itemTop + itemImage.info.height * 0.45,
+            r: Math.max(itemImage.info.width, itemImage.info.height) * 0.75,
+        })
+
         return background
             .composite([
-                { input: itemImage.data, top: height - itemImage.info.height, left: Math.round((width - itemImage.info.width) / 2) },
+                { input: halo, top: 0, left: 0 },
+                { input: itemImage.data, top: itemTop, left: itemLeft },
                 { input: plate, top: hasNamecard ? 0 : height - plateInfo.height, left: Math.round((width - plateInfo.width) / 2) },
             ])
             .png()
             .toBuffer()
+    }
+
+    /** Soft glow behind the motive, in the item's colour (or its rarity's, when it has none) */
+    private static buildHalo(item: IUserLootItem, width: number, height: number, centre: { x: number; y: number; r: number }): Buffer {
+        const color = haloColor[item.color] ?? (rarityBand[item.rarity] ?? rarityBand[ItemRarity.Common]).glow
+        return Buffer.from(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+                <defs><radialGradient id="h">
+                    <stop offset="0" stop-color="#ffffff" stop-opacity=".9"/>
+                    <stop offset=".5" stop-color="${color}" stop-opacity=".9"/>
+                    <stop offset=".75" stop-color="${color}" stop-opacity=".4"/>
+                    <stop offset="1" stop-color="${color}" stop-opacity="0"/>
+                </radialGradient></defs>
+                <circle cx="${centre.x}" cy="${centre.y}" r="${centre.r}" fill="url(#h)"/>
+            </svg>`
+        )
     }
 
     private static namecardFile(item: IUserLootItem, file: string) {
