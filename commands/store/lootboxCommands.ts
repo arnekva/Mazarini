@@ -199,7 +199,7 @@ export class LootboxCommands extends AbstractCommands {
         const rewardedItem = this.calculateRewardItem(box, seriesObj, user)
         this.registerItemOnUser(user, rewardedItem)
         if (!(rewardedItem.rarity === ItemRarity.Unobtainable)) this.generateInventoryParts(user, rewardedItem.series, [rewardedItem.rarity])
-        this.revealCollectable(interaction, rewardedItem, user.userSettings.lootReactionTimer)
+        this.revealCollectable(interaction, rewardedItem, user.userSettings.lootReactionTimer, seriesObj.name)
     }
 
     private async openAndRegisterLootChest(interaction: ChatInteraction | BtnInteraction, pendingChest?: IPendingChest) {
@@ -520,7 +520,7 @@ export class LootboxCommands extends AbstractCommands {
             const item = this.getChestItem(interaction, pendingChest)
             this.registerItemOnUser(user, item)
             if (!(item.rarity === ItemRarity.Unobtainable)) this.generateInventoryParts(user, item.series, [item.rarity])
-            this.revealCollectable(interaction, item, user.userSettings.lootReactionTimer)
+            this.revealCollectable(interaction, item, user.userSettings.lootReactionTimer, pendingChest.series)
             this.deletePendingChest(interaction)
         }
     }
@@ -593,6 +593,10 @@ export class LootboxCommands extends AbstractCommands {
         if (!colored && series.hasColor && (user.effects?.positive?.guaranteedLootColor ?? 0) > 0) {
             colored = true
             user.effects.positive.guaranteedLootColor -= 1
+        }
+        // Joke: 1/1000 KJLU pulls is David Wallace from Lootfice, revealed with the KJLU intro and put in the Lootfice inventory
+        if (series.name === 'kjlu' && Math.random() < 1 / 1000) {
+            return { name: 'david_wallace', series: 'lootfice', rarity: ItemRarity.Epic, color: this.getRandomColor(colored, user), amount: 1, isCCG: false }
         }
         if (series.hasUnobtainable && itemRoll < (box.probabilities.unobtainable ?? 0) && (series.unobtainableHolder ?? '') !== user.id) {
             return this.getRandomItemForRarity(ItemRarity.Unobtainable, series, colored, user)
@@ -792,12 +796,14 @@ export class LootboxCommands extends AbstractCommands {
         return `${item.series};${item.rarity};${item.name};${item.color}`
     }
 
-    private async revealCollectable(interaction: ChatInteraction | BtnInteraction, item: IUserLootItem, timer?: number) {
+    /** openedSeries is the series the box/chest was opened from - an item from another series (the KJLU David Wallace) gets that series' intro */
+    private async revealCollectable(interaction: ChatInteraction | BtnInteraction, item: IUserLootItem, timer?: number, openedSeries?: string) {
         if (item.isCCG) return this.revealCCGLoot()
         const mgItemBuilder = new MediaGalleryItemBuilder()
         const files: AttachmentBuilder[] = []
-        if (this.getRevealGenerator().hasAssets(item.series)) {
-            const reveal = await this.generateReveal(item).catch((e) => {
+        const isCrossover = !!openedSeries && openedSeries !== item.series && this.getRevealGenerator().hasAssets(openedSeries)
+        if (isCrossover || this.getRevealGenerator().hasAssets(item.series)) {
+            const reveal = await (isCrossover ? this.generateCrossoverReveal(openedSeries, item) : this.generateReveal(item)).catch((e) => {
                 this.messageHelper.sendLogMessage(`Klarte ikke å generere reveal for ${item.series} ${item.name} (${item.color}): ${e}`)
                 return undefined
             })
@@ -825,6 +831,13 @@ export class LootboxCommands extends AbstractCommands {
         const generator = this.getRevealGenerator()
         const motive = generator.localMotive(item) ?? (await this.getEmojiMotive(item))
         return generator.generate(item, motive, await this.getItemDisplayName(item))
+    }
+
+    /** The item's own stored reveal ends on its card - that card goes under the opened series' intro */
+    private async generateCrossoverReveal(openedSeries: string, item: IUserLootItem): Promise<Buffer> {
+        const link = await this.client.database.getLootGifLink(this.getGifPath(item))
+        const otherReveal = Buffer.from(await (await fetch(link)).arrayBuffer())
+        return this.getRevealGenerator().generateCrossover(openedSeries, item, otherReveal)
     }
 
     /** Discord keeps application emojis at 128x128, so this is only the fallback for a missing motive file */

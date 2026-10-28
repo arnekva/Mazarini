@@ -50,7 +50,7 @@ export const mastermindValues = {
   codeLength: 4,
   colors: ["red", "blue", "yellow", "green", "black", "white"] as const,
   /** reward = baseReward - perGuessPenalty * numGuesses, floored at 0 */
-  baseReward: 2000,
+  baseReward: 3000,
   perGuessPenalty: 200,
 }
 

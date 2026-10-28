@@ -33,7 +33,7 @@ const foilTint: Record<ItemColor, string | undefined> = {
     [ItemColor.Diamond]: '#6fd8ff',
 }
 
-/** The halo behind the motive - an uncoloured item glows in its rarity's colour instead */
+/** The halo behind the motive, in the item's colour - an uncoloured item gets none (its rarity glows behind the name instead) */
 const haloColor: Record<ItemColor, string | undefined> = {
     [ItemColor.None]: undefined,
     [ItemColor.Silver]: '#e8eef8',
@@ -75,8 +75,21 @@ export class LootRevealGenerator {
         const height = meta.pageHeight
 
         const card = await this.buildCard(item, motive, displayName, width, height)
+        return this.animateOver(revealFile, meta, card)
+    }
+
+    /** Another series' finished reveal (its last frame) under this series' reveal animation - the KJLU intro revealing a Lootfice item */
+    public static async generateCrossover(introSeries: string, item: IUserLootItem, otherReveal: Buffer): Promise<Buffer> {
+        const revealFile = this.readFile(this.pickFile({ ...item, series: introSeries }, 'gifs'))
+        const meta = await sharp(revealFile, { animated: true }).metadata()
+        const lastFrame = ((await sharp(otherReveal).metadata()).pages ?? 1) - 1
+        const card = await sharp(otherReveal, { page: lastFrame }).resize(meta.width, meta.pageHeight, { fit: 'cover' }).png().toBuffer()
+        return this.animateOver(revealFile, meta, card)
+    }
+
+    private static animateOver(revealFile: Buffer, meta: sharp.Metadata, card: Buffer): Promise<Buffer> {
         return sharp(card)
-            .extend({ bottom: height * (meta.pages - 1), extendWith: 'repeat' })
+            .extend({ bottom: meta.pageHeight * (meta.pages - 1), extendWith: 'repeat' })
             .composite([{ input: revealFile, animated: true }])
             .webp({ delay: meta.delay, loop: 1, effort: 2, quality: 75 })
             .toBuffer()
@@ -97,7 +110,6 @@ export class LootRevealGenerator {
             .trim({ threshold: 1 })
             .resize({ width: Math.round(width * 0.9), height: motiveSpace, fit: 'inside' })
             .toBuffer({ resolveWithObject: true })
-
         const itemTop = height - itemImage.info.height
         const itemLeft = Math.round((width - itemImage.info.width) / 2)
         const halo = this.buildHalo(item, width, height, {
@@ -108,7 +120,7 @@ export class LootRevealGenerator {
 
         return background
             .composite([
-                { input: halo, top: 0, left: 0 },
+                ...(halo ? [{ input: halo, top: 0, left: 0 }] : []),
                 { input: itemImage.data, top: itemTop, left: itemLeft },
                 { input: plate, top: hasNamecard ? 0 : height - plateInfo.height, left: Math.round((width - plateInfo.width) / 2) },
             ])
@@ -116,9 +128,10 @@ export class LootRevealGenerator {
             .toBuffer()
     }
 
-    /** Soft glow behind the motive, in the item's colour (or its rarity's, when it has none) */
-    private static buildHalo(item: IUserLootItem, width: number, height: number, centre: { x: number; y: number; r: number }): Buffer {
-        const color = haloColor[item.color] ?? (rarityBand[item.rarity] ?? rarityBand[ItemRarity.Common]).glow
+    /** Soft glow behind the motive in the item's colour - undefined for uncoloured items */
+    private static buildHalo(item: IUserLootItem, width: number, height: number, centre: { x: number; y: number; r: number }): Buffer | undefined {
+        const color = haloColor[item.color]
+        if (!color) return undefined
         return Buffer.from(
             `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
                 <defs><radialGradient id="h">
@@ -149,6 +162,10 @@ export class LootRevealGenerator {
         const centre = { x: width * 0.52, y: height * 0.51 }
         const box = { w: width * 0.74, h: height * (lines.length > 1 ? 0.46 : 0.3) }
 
+        const text = await sharp(await this.renderFoilName(item, lines))
+            .resize({ width: Math.round(box.w), height: Math.round(box.h), fit: 'inside' })
+            .toBuffer({ resolveWithObject: true })
+        // the rarity glow hugs the name itself, not the whole wreath
         const band = rarityBand[item.rarity] ?? rarityBand[ItemRarity.Common]
         const glow = Buffer.from(
             `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
@@ -157,12 +174,9 @@ export class LootRevealGenerator {
                     <stop offset=".6" stop-color="${band.edge}" stop-opacity=".55"/>
                     <stop offset="1" stop-color="${band.edge}" stop-opacity="0"/>
                 </radialGradient></defs>
-                <ellipse cx="${centre.x}" cy="${centre.y}" rx="${width * 0.42}" ry="${height * 0.3}" fill="url(#g)"/>
+                <ellipse cx="${centre.x}" cy="${centre.y}" rx="${Math.max(text.info.width * 0.7, width * 0.2)}" ry="${text.info.height * 1.1}" fill="url(#g)"/>
             </svg>`
         )
-        const text = await sharp(await this.renderFoilName(item, lines))
-            .resize({ width: Math.round(box.w), height: Math.round(box.h), fit: 'inside' })
-            .toBuffer({ resolveWithObject: true })
 
         return sharp(glow)
             .composite([

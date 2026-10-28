@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '37.0.2'
+    public static readonly currentVersion = '37.0.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,15 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '* Du får nå alternativer på hovedsteder',
-                '* 500 -> 400 chips per korrekte guess',
-                '* Slight lykkehjul nerf',
-                '* Halo eer tilbake på looten',
-                '* Fikset at det stod "KJ" i stedet for Kristoffer Joneer i reveal',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['* Fikset Halo på loot', '* Mastermind gir nå 3000 - 200*antall gjett, opp fra 2000'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
