@@ -555,10 +555,17 @@ export class ImageGenerationHelper {
         // Total canvas height = number of sections × height
         let totalHeight = height * buffers.length
         if (unobtainableSeries && unobtainableSeries.length > 0) {
-            const unobtainable = fs.readFileSync(`graphics/background/inventory_parts/unobtainable_${unobtainableSeries}.png`)
-            const extra = await sharp(unobtainable).metadata()
-            totalHeight += extra.height
-            buffers.push(unobtainable)
+            const bannerPath = `graphics/background/inventory_parts/unobtainable_${unobtainableSeries}.png`
+            if (fs.existsSync(bannerPath)) {
+                const unobtainable = fs.readFileSync(bannerPath)
+                const extra = await sharp(unobtainable).metadata()
+                totalHeight += extra.height
+                buffers.push(unobtainable)
+            } else {
+                this.client.messageHelper.sendLogMessage(
+                    `Mangler unobtainable-banner for serien ${unobtainableSeries} (${bannerPath}). Inventory vises uten banner.`
+                )
+            }
         }
 
         // Create a blank canvas

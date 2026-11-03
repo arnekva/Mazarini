@@ -964,21 +964,26 @@ export class LootboxCommands extends AbstractCommands {
             }
             if (!this.userHasInventoryInQueue(user.id, series.name)) {
                 clearInterval(intervalId)
-                user = await this.client.database.getUser(interaction.user.id)
-                if (!(await this.verifyUserHasInventoryImages(user, series.name))) {
-                    return this.printInventory(interaction)
-                }
-                if (!(await this.userHasValidInventoryLinks(user, series.name))) {
+                try {
                     user = await this.client.database.getUser(interaction.user.id)
+                    if (!(await this.verifyUserHasInventoryImages(user, series.name))) {
+                        return this.printInventory(interaction)
+                    }
+                    if (!(await this.userHasValidInventoryLinks(user, series.name))) {
+                        user = await this.client.database.getUser(interaction.user.id)
+                    }
+                    const unobtainableSeries = (series.unobtainableHolder ?? '') === user.id ? series.name : ''
+                    const img = await this.getImageGenerator().stitchInventory(user.loot[series.name].inventory, unobtainableSeries)
+                    const file = new AttachmentBuilder(img, { name: 'inventory.png' })
+                    const refreshBtn = refreshInventoryBtn(user.id, series.name)
+                    if (interaction.isButton()) {
+                        interaction.message.edit({ files: [file], components: [refreshBtn] })
+                    }
+                    this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [refreshBtn], [file])
+                } catch (e) {
+                    this.messageHelper.sendLogMessage(`Klarte ikke å generere inventory for ${interaction.user.username} (${series.name}): ${e}`)
+                    this.messageHelper.replyToInteraction(interaction, 'Klarte ikke å hente inventory', { hasBeenDefered: true })
                 }
-                const unobtainableSeries = (series.unobtainableHolder ?? '') === user.id ? series.name : ''
-                const img = await this.getImageGenerator().stitchInventory(user.loot[series.name].inventory, unobtainableSeries)
-                const file = new AttachmentBuilder(img, { name: 'inventory.png' })
-                const refreshBtn = refreshInventoryBtn(user.id, series.name)
-                if (interaction.isButton()) {
-                    interaction.message.edit({ files: [file], components: [refreshBtn] })
-                }
-                this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [refreshBtn], [file])
             }
         }, 1500)
     }
