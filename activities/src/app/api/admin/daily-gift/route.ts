@@ -1,4 +1,4 @@
-import { isAdminUser } from "@/lib/admin"
+import { canManageGifts } from "@/lib/admin"
 import { DEFAULT_GIFT_RECIPIENTS, GIFT_PATH, giftLabel, parseGiftOptions, parseRecipients, readDailyGift } from "@/lib/dailyGift"
 import { FirebaseHelper } from "@/lib/db/firebaseHelper"
 import { authenticateRequest } from "@/lib/discordAuth"
@@ -7,7 +7,7 @@ import { authenticateRequest } from "@/lib/discordAuth"
 async function authenticateAdmin(request: Request) {
   const { user, error } = await authenticateRequest(request)
   if (error) return { error }
-  if (!isAdminUser(user.id)) return { error: Response.json({ error: "Bare for admin" }, { status: 403 }) }
+  if (!canManageGifts(user.id)) return { error: Response.json({ error: "Bare for admin" }, { status: 403 }) }
   return { user }
 }
 

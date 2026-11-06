@@ -1,7 +1,7 @@
 "use client"
 
 import { callApi } from "@/lib/apiClient"
-import { isAdminUser } from "@/lib/admin"
+import { canManageGifts, isAdminUser } from "@/lib/admin"
 import { useDiscord } from "@/providers/discordProvider"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -49,6 +49,7 @@ export default function Home() {
   const [status, setStatus] = useState<HubStatus | null>(null)
   const [redirecting, setRedirecting] = useState(false)
   const isAdmin = isAdminUser(discordUser?.id)
+  const isGiftAdmin = canManageGifts(discordUser?.id)
   const itemsPerGame = status?.itemsPerGame ?? 1
   // Song Rank is tucked away unless the page was opened with ?songrank=true (read straight off the URL; false while server-rendering).
   const showSongRank = useSyncExternalStore(
@@ -145,7 +146,7 @@ export default function Home() {
               Deal or No Deal
               <span className={styles.cardSub}>{status ? `${status.dondTokens} token${status.dondTokens === 1 ? "" : "s"}` : " "}</span>
             </HubCard>
-            {isAdmin && (
+            {isGiftAdmin && (
               <HubCard href="/admin" enabled cardClass="cardRed" fullWidth>
                 Admin
                 <span className={styles.cardSub}>Daglig gave og andre kontroller</span>
