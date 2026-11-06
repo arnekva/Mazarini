@@ -2,7 +2,7 @@ import { increment } from "firebase/database"
 import { after } from "next/server"
 import { FirebaseHelper } from "@/lib/db/firebaseHelper"
 import { authenticateRequest } from "@/lib/discordAuth"
-import { announceInChannel, lootButtonComponent } from "@/lib/discordMessage"
+import { announceName, announceInChannel, lootButtonComponent } from "@/lib/discordMessage"
 import { dailyClaimValues, JAIL_MULTIPLIER } from "@/lib/gameValues"
 
 // Mirrors commands/money/dailyClaimCommands.ts in the bot repo: same reward formula, same
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   if (lootAwarded && dailyClaimValues.streak7Reward === "chest") {
     after(() =>
       announceInChannel(user.channelId, {
-        content: `<@${user.id}> nådde 7 dager i strekk på Daily Claim og fikk en kiste!`,
+        content: `${announceName(user)} nådde 7 dager i strekk på Daily Claim og fikk en kiste!`,
         components: [lootButtonComponent(user.id, "basic", "chest")],
       })
     )

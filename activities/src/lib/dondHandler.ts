@@ -1,7 +1,7 @@
 import { after } from "next/server"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
-import { dondSpectateButtonComponent, lootButtonComponent, postAnnouncement, resolveAnnounceChannel } from "./discordMessage"
+import { announceName, dondSpectateButtonComponent, lootButtonComponent, postAnnouncement, resolveAnnounceChannel } from "./discordMessage"
 import { discordAvatarUrl } from "./discordAvatar"
 import { DOND_CASES, DOND_TIER_K, DondTier, JAIL_MULTIPLIER, ANNOUNCE_CHANNEL_ID, dondValues } from "./gameValues"
 import { DondEffect, effectPoolForOffer, findEffect } from "./dondItems"
@@ -266,7 +266,7 @@ function recapEmbed(userId: string, game: DondGame, chat: ChatMessage[]) {
   const reward = result.effectLabel ?? `${fmtChips(result.chips ?? 0)} chips`
 
   const description = [
-    `**Spiller:** <@${userId}>`,
+    `**Spiller:** ${announceName({ username: game.playerName ?? "?" })}`,
     `**Type:** ${DOND_TIER_K[game.tier]}K`,
     `**Utfall:** ${outcome} - ${reward}`,
     `**Kofferten (nr ${game.startCase ?? game.playerCase}) inneholdt:** ${fmtChips(originalValue)} chips`,
@@ -362,7 +362,7 @@ export async function startDond(user: AuthenticatedDiscordUser, tierInput: unkno
   await writeGame(firebase, user.id, game)
   // A fresh round never inherits the previous round's chat.
   await firebase.updateData({ [chatPath(user.id)]: null, [spectatorsPath(user.id)]: null })
-  await announce({ content: `<@${user.id}> har startet en runde Deal or No Deal! Klikk på knappen for å se på`, components: [dondSpectateButtonComponent(user.id)] }, game.channelId)
+  await announce({ content: `${announceName(user)} har startet en runde Deal or No Deal! Klikk på knappen for å se på`, components: [dondSpectateButtonComponent(user.id)] }, game.channelId)
   return Response.json({ tokens: { ...tokens, [tier]: tokens[tier] - 1 }, game: publicView(game) })
 }
 

@@ -2,7 +2,7 @@ import { increment } from "firebase/database"
 import { after } from "next/server"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
-import { announceInChannel } from "./discordMessage"
+import { announceName, announceInChannel } from "./discordMessage"
 import { CUSTOM_MOL_GAME_TAG, moreOrLessValues } from "./gameValues"
 
 import cg_norwegianCities from "@/data/more-or-less/norwegianCities.json"
@@ -299,7 +299,7 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
   if (completionBonus) {
     after(() =>
       announceInChannel(user.channelId, {
-        content: `<@${user.id}> fullførte dagens More or Less (${category.title}) med ${correctAnswers} riktige og fikk ${reward} chips!`,
+        content: `${announceName(user)} fullførte dagens More or Less (${category.title}) med ${correctAnswers} riktige og fikk ${reward} chips!`,
       })
     )
   }

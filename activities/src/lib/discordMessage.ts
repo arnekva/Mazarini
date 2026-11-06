@@ -4,7 +4,12 @@ import { ANNOUNCE_CHANNEL_ID } from "./gameValues"
 /** The custom :kekw: emoji (server "Mazarini Emoji 1", which the bot is in). A custom emoji in a raw message has to be written out with its id, the bot's emoji cache is not available here. */
 export const KEKW_EMOJI = "<:kekw:1546810866232463361>"
 
-/** Announcements still show "@name", but never ping - finishing your dailies used to tag you five times over.
+/** The user's name as plain text for announcements - no @, so nobody is tagged. Markdown characters are escaped so a name can't format the message. */
+export function announceName(user: { username: string; globalName?: string | null }): string {
+  return (user.globalName ?? user.username).replace(/([\\*_~`|>#\[\]()-])/g, "\\$1")
+}
+
+/** Never ping from an announcement (names are written as plain text, see announceName) - finishing your dailies used to tag you five times over.
  * A caller that really wants to notify someone can pass its own allowed_mentions. */
 function withoutPings<T extends { allowed_mentions?: unknown }>(body: T): T {
   return { ...body, allowed_mentions: body.allowed_mentions ?? { parse: [] } }

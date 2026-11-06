@@ -11,7 +11,7 @@ import { increment } from "firebase/database"
 import { after } from "next/server"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
-import { announceInChannel, lootButtonComponent } from "./discordMessage"
+import { announceName, announceInChannel, lootButtonComponent } from "./discordMessage"
 
 export type GiftKind = "dond" | "box" | "chest" | "chips" | "spin" | "pot"
 /** basic/premium/elite for everything tiered; legendary is Deal or No Deal's 100k; color/super/fantastic/nondupe are the reward-only chests (see the bot's specialChests.ts). */
@@ -146,8 +146,8 @@ export async function grantGift(firebase: FirebaseHelper, user: AuthenticatedDis
     announceInChannel(user.channelId, {
       content:
         option.kind === "pot"
-          ? `${giftIcon(option)} <@${user.id}> har åpnet gaven og la **${(option.amount ?? 0).toLocaleString("nb-NO")}** chips i deathroll-potten!`
-          : `${giftIcon(option)} <@${user.id}> har åpnet gaven og fikk **${giftLabel(option)}**!`,
+          ? `${giftIcon(option)} ${announceName(user)} har åpnet gaven og la **${(option.amount ?? 0).toLocaleString("nb-NO")}** chips i deathroll-potten!`
+          : `${giftIcon(option)} ${announceName(user)} har åpnet gaven og fikk **${giftLabel(option)}**!`,
       ...(loot ? { components: [lootButtonComponent(user.id, option.quality ?? "basic", loot)] } : {}),
     })
   )

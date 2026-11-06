@@ -3,7 +3,7 @@ import { after } from "next/server"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { challengeItems, CountryChallenge, DailyGameStats, GameStat, hasRewardedSlotsLeft, publicChallenge } from "./dailyHub"
-import { announceInChannel, KEKW_EMOJI } from "./discordMessage"
+import { announceName, announceInChannel, KEKW_EMOJI } from "./discordMessage"
 import { getGuessHint } from "./geo"
 import { countryChallengeValues } from "./gameValues"
 
@@ -114,11 +114,11 @@ async function settleItem(
       announceInChannel(user.channelId, {
         content: single
           ? correct > 0
-            ? `<@${user.id}> gjettet rett på ${numAttempts}/${countryChallengeValues.maxAttempts} forsøk på ${singleLabels[game]}${reward > 0 ? ` og fikk ${reward} chips!` : "!"}`
-            : `<@${user.id}> svarte FEIL på ${singleLabels[game]}! ${KEKW_EMOJI}`
+            ? `${announceName(user)} gjettet rett på ${numAttempts}/${countryChallengeValues.maxAttempts} forsøk på ${singleLabels[game]}${reward > 0 ? ` og fikk ${reward} chips!` : "!"}`
+            : `${announceName(user)} svarte FEIL på ${singleLabels[game]}! ${KEKW_EMOJI}`
           : correct === 0
-            ? `<@${user.id}> svarte FEIL på alle ${total} ${pluralLabels[game]}! ${KEKW_EMOJI}`
-            : `<@${user.id}> svarte rett på ${correct}/${total} ${pluralLabels[game]}${correct * countryChallengeValues.rewardPerCorrect > 0 ? ` og fikk ${correct * countryChallengeValues.rewardPerCorrect} chips!` : "!"}`,
+            ? `${announceName(user)} svarte FEIL på alle ${total} ${pluralLabels[game]}! ${KEKW_EMOJI}`
+            : `${announceName(user)} svarte rett på ${correct}/${total} ${pluralLabels[game]}${correct * countryChallengeValues.rewardPerCorrect > 0 ? ` og fikk ${correct * countryChallengeValues.rewardPerCorrect} chips!` : "!"}`,
       })
     )
   }

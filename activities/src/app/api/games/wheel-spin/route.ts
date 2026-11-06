@@ -2,7 +2,7 @@ import { increment } from "firebase/database"
 import { after } from "next/server"
 import { FirebaseHelper } from "@/lib/db/firebaseHelper"
 import { authenticateRequest } from "@/lib/discordAuth"
-import { announceInChannel, lootButtonComponent } from "@/lib/discordMessage"
+import { announceName, announceInChannel, lootButtonComponent } from "@/lib/discordMessage"
 import { isGrantableWheelReward } from "@/lib/gameValues"
 
 // The client plays a several-second spin animation before revealing the result - announcing it in
@@ -58,13 +58,13 @@ export async function POST(request: Request) {
     updates.chips = increment(reward.amount ?? 0)
     after(async () => {
       await delay(ANNOUNCE_DELAY_MS)
-      await announceInChannel(user.channelId, { content: `<@${user.id}> vant ${reward.amount} chips på Lykkehjulet!` })
+      await announceInChannel(user.channelId, { content: `${announceName(user)} vant ${reward.amount} chips på Lykkehjulet!` })
     })
   } else if (reward.type === "shards") {
     updates["ccg/shards"] = increment(reward.amount ?? 0)
     after(async () => {
       await delay(ANNOUNCE_DELAY_MS)
-      await announceInChannel(user.channelId, { content: `<@${user.id}> vant ${reward.amount} shards på Lykkehjulet!` })
+      await announceInChannel(user.channelId, { content: `${announceName(user)} vant ${reward.amount} shards på Lykkehjulet!` })
     })
   } else if (reward.type === "chest" || reward.type === "box") {
     // Captured into a local const so the "chest" | "box" narrowing survives into the closure below -
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     after(async () => {
       await delay(ANNOUNCE_DELAY_MS)
       await announceInChannel(user.channelId, {
-        content: `<@${user.id}> vant en ${lootType} på Lykkehjulet!`,
+        content: `${announceName(user)} vant en ${lootType} på Lykkehjulet!`,
         components: [lootButtonComponent(user.id, reward.quality ?? "basic", lootType)],
       })
     })
