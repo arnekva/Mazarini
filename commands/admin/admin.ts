@@ -256,6 +256,9 @@ export class Admin extends AbstractCommands {
         const chips = interaction.options.get('chips')?.value as number
         const quality = interaction.options.get('quality')?.value as string
         const series = interaction.options.get('series')?.value as string
+        if (rewardType === 'chips' && !(chips > 0)) {
+            return this.messageHelper.replyToInteraction(interaction, 'En chips-reward må være på minst 1 chip', { ephemeral: true })
+        }
         const pendingReward: IReward = {
             type: rewardType,
             reason: reason,

@@ -4,6 +4,12 @@ import { ANNOUNCE_CHANNEL_ID } from "./gameValues"
 /** The custom :kekw: emoji (server "Mazarini Emoji 1", which the bot is in). A custom emoji in a raw message has to be written out with its id, the bot's emoji cache is not available here. */
 export const KEKW_EMOJI = "<:kekw:1546810866232463361>"
 
+/** Announcements still show "@name", but never ping - finishing your dailies used to tag you five times over.
+ * A caller that really wants to notify someone can pass its own allowed_mentions. */
+function withoutPings<T extends { allowed_mentions?: unknown }>(body: T): T {
+  return { ...body, allowed_mentions: body.allowed_mentions ?? { parse: [] } }
+}
+
 // Raw Discord REST calls using the bot token - same identity the bot itself posts as, so a button
 // posted from here is handled by the bot's already-registered OPEN_LOOT interaction handler.
 /** Returns whether Discord accepted the message - callers that have somewhere else to try (see resolveAnnounceChannel) can fall back. */
@@ -18,7 +24,7 @@ export async function postChannelMessage(channelId: string, body: { content?: st
       Authorization: `Bot ${discordBotToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(withoutPings(body)),
   })
   if (!response.ok) console.warn(`Discord post to ${channelId} failed (${response.status}):`, await response.text().catch(() => ""))
   return response.ok
@@ -118,7 +124,7 @@ export async function postLiveMessage(target: string, body: MessageBody): Promis
     const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
       method: "POST",
       headers: { Authorization: `Bot ${discordBotToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(withoutPings(body)),
     })
     if (!response.ok) {
       console.warn(`Discord post to ${channelId} failed (${response.status}):`, await response.text().catch(() => ""))
@@ -144,7 +150,7 @@ export async function editLiveMessage(ref: LiveMessageRef, body: MessageBody) {
     const response = await fetch(`https://discord.com/api/v10/channels/${ref.channelId}/messages/${ref.messageId}`, {
       method: "PATCH",
       headers: { Authorization: `Bot ${discordBotToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(withoutPings(body)),
     })
     if (!response.ok) console.warn(`Discord edit of ${ref.messageId} failed (${response.status}):`, await response.text().catch(() => ""))
   } catch (e) {

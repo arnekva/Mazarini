@@ -249,11 +249,14 @@ export class ClientListener {
             this.client.messageHelper.sendLogMessage('Ukjent: on guildCreate. Wat dis do?')
         })
 
+        // Welcome/bye only for Mazarini itself - the bot is in other guilds too
         this.client.on('guildMemberAdd', (member: GuildMember) => {
+            if (member.guild.id !== ServerIds.MAZARINI) return
             UserUtils.onAddedMember(member, this.client.messageHelper, this.client.database)
         })
 
         this.client.on('guildMemberRemove', (member: GuildMember | PartialGuildMember) => {
+            if (member.guild.id !== ServerIds.MAZARINI) return
             UserUtils.onMemberLeave(member, this.client.messageHelper)
         })
 
