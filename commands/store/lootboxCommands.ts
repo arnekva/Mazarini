@@ -20,6 +20,7 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import type { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { InventoryArts } from '../../helpers/inventoryArts'
+import { HolderSwaps } from '../../helpers/holderSwaps'
 import type { LootRevealGenerator as LootRevealGeneratorType } from '../../helpers/lootRevealGenerator'
 import { LootStatsHelper } from '../../helpers/statsHelper'
 import {
@@ -92,6 +93,7 @@ export type LootType = 'box' | 'chest' | 'pack'
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
     private series: ILootSeries[]
+    private swapsRefreshed = new Set<string>()
     private newestSeries: ILootSeries
     private pendingTrades: Map<string, IPendingTrade>
     private pendingChests: Map<string, IPendingChest>
@@ -734,9 +736,37 @@ export class LootboxCommands extends AbstractCommands {
     private async updateUnobtainableHolder(seriesName: string, user: MazariniUser) {
         const allSeries = await this.getSeries()
         const updateSeries = allSeries.find((x) => x.name === seriesName)
+        const previousHolder = updateSeries.unobtainableHolder
         updateSeries.unobtainableHolder = user.id
         this.series = allSeries.map((s) => (s.name === seriesName ? updateSeries : s))
         this.database.updateLootboxSeries(updateSeries)
+        this.regenerateSwappedInventories(updateSeries, [previousHolder, user.id])
+    }
+
+    /** The holder's stored inventory may predate a swap (or a restart lost track of it) - redraw the swapped rarities once per run.
+     * Queues the update synchronously, so printInventory waits for the new images */
+    private refreshSwappedItemsOnce(user: MazariniUser, series: ILootSeries) {
+        const key = `${user.id};${series.name}`
+        if (series.unobtainableHolder !== user.id || this.swapsRefreshed.has(key) || !user.loot?.[series.name]) return
+        const rarities = HolderSwaps.raritiesWithSwaps(series)
+        if (rarities.length === 0) return
+        this.swapsRefreshed.add(key)
+        this.generateInventoryParts(user, series.name, rarities)
+    }
+
+    /** Items that look different for the unobtainable holder have to be redrawn for both the new and the previous holder */
+    private async regenerateSwappedInventories(series: ILootSeries, userIds: string[]) {
+        const rarities = HolderSwaps.raritiesWithSwaps(series)
+        if (rarities.length === 0) return
+        for (const userId of [...new Set(userIds)].filter((id) => id && id.length > 0)) {
+            try {
+                const user = await this.client.database.getUser(userId)
+                if (!user?.loot?.[series.name]) continue
+                await this.generateInventoryParts(user, series.name, rarities)
+            } catch (e) {
+                this.messageHelper.sendLogMessage(`Klarte ikke å oppdatere inventory for ${userId} etter ny unobtainable-eier i ${series.name}: ${e}`)
+            }
+        }
     }
 
     equalItems = (item1: IUserLootItem, item2: IUserLootItem) => item1.name === item2.name && item1.color === item2.color
@@ -803,10 +833,12 @@ export class LootboxCommands extends AbstractCommands {
         const files: AttachmentBuilder[] = []
         const isCrossover = !!openedSeries && openedSeries !== item.series && this.getRevealGenerator().hasAssets(openedSeries)
         if (isCrossover || this.getRevealGenerator().hasAssets(item.series)) {
-            const reveal = await (isCrossover ? this.generateCrossoverReveal(openedSeries, item) : this.generateReveal(item)).catch((e) => {
-                this.messageHelper.sendLogMessage(`Klarte ikke å generere reveal for ${item.series} ${item.name} (${item.color}): ${e}`)
-                return undefined
-            })
+            const reveal = await (isCrossover ? this.generateCrossoverReveal(openedSeries, item) : this.generateReveal(item, interaction.user.id)).catch(
+                (e) => {
+                    this.messageHelper.sendLogMessage(`Klarte ikke å generere reveal for ${item.series} ${item.name} (${item.color}): ${e}`)
+                    return undefined
+                }
+            )
             if (!reveal) {
                 const name = await this.getItemDisplayName(item)
                 return this.messageHelper.replyToInteraction(interaction, `Du fikk ${name} (${item.rarity}, ${item.color})`, { hasBeenDefered: true })
@@ -827,8 +859,16 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     /** Built on every open (~0.7s) instead of stored. The motive is the series' full-size file, or the item's emoji if there's none */
-    private async generateReveal(item: IUserLootItem): Promise<Buffer> {
+    private async generateReveal(item: IUserLootItem, userId: string): Promise<Buffer> {
         const generator = this.getRevealGenerator()
+        // The unobtainable holder sees some items swapped (e.g. Rizztoffer instead of Kristoffer Joner)
+        const swap = HolderSwaps.forItem(
+            (await this.getSeries()).find((s) => s.name === item.series),
+            userId,
+            item
+        )
+        const swappedMotive = swap ? HolderSwaps.motive(item, swap) : undefined
+        if (swappedMotive) return generator.generate(item, swappedMotive, swap.displayName)
         const motive = generator.localMotive(item) ?? (await this.getEmojiMotive(item))
         return generator.generate(item, motive, await this.getItemDisplayName(item))
     }
@@ -955,6 +995,7 @@ export class LootboxCommands extends AbstractCommands {
             const error = await this.setInventoryBackground(user, series, chosenBackground)
             if (error) return this.messageHelper.replyToInteraction(interaction, error, { hasBeenDefered: true })
         }
+        this.refreshSwappedItemsOnce(user, series)
         let attempts = 0
         const intervalId = setInterval(async () => {
             attempts++

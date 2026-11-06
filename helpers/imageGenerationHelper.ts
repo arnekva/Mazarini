@@ -18,6 +18,7 @@ import {
 import { ArrayUtils } from '../utils/arrayUtils'
 import { TextUtils } from '../utils/textUtils'
 import { CCGCardGenerator } from './ccgCardGenerator'
+import { HolderSwaps } from './holderSwaps'
 import { InventoryArts } from './inventoryArts'
 
 /** CCG series whose emoji names match the card ID exactly (no series prefix) */
@@ -523,7 +524,11 @@ export class ImageGenerationHelper {
         collectables = collectables.sort((a, b) => `${a.name}_${this.getColorOrder(a.color)}`.localeCompare(`${b.name}_${this.getColorOrder(b.color)}`))
         const canvas = await getCanvasImage({ buffer: background })
         const imageTemplate: ICollectableImage = splitInventoryTemplate
-        const images = await this.getImagesForRarity(collectables, imageTemplate[rarity])
+        const images = await this.getImagesForRarity(collectables, imageTemplate[rarity], (item) => {
+            // The unobtainable holder sees some items swapped (e.g. Rizztoffer instead of Kristoffer Joner)
+            const swap = HolderSwaps.forItem(series, user.id, item)
+            return swap ? HolderSwaps.motive(item, swap) : undefined
+        })
         images.push({ ...splitInventoryOptions, canvasImage: canvas })
         const collection = new UltimateTextToImage('', { ...imageTemplate.options, images: images }).render().toBuffer()
         return collection
@@ -697,21 +702,31 @@ export class ImageGenerationHelper {
         return images
     }
 
-    private async getImagesForRarity(collectables: IUserLootItem[], coords: IItemShadowCoordinates[]): Promise<IImage[]> {
+    private async getImagesForRarity(
+        collectables: IUserLootItem[],
+        coords: IItemShadowCoordinates[],
+        localMotive?: (item: IUserLootItem) => Buffer | undefined
+    ): Promise<IImage[]> {
         const images: IImage[] = new Array<IImage>()
         let i = 0
         for (const item of collectables) {
-            const itemImages = await this.getImagesForSingleCollectable(item, coords[i])
+            const itemImages = await this.getImagesForSingleCollectable(item, coords[i], localMotive?.(item))
             images.push(...itemImages)
             i++
         }
         return images
     }
 
-    private async getImagesForSingleCollectable(item: IUserLootItem, coord: IItemShadowCoordinates): Promise<IImage[]> {
-        const url = await this.getEmojiImageUrl(item)
-        if (!url) return []
-        const emojiImageBuffer = await this.getPngBufferForWebpUrl(url)
+    private async getImagesForSingleCollectable(item: IUserLootItem, coord: IItemShadowCoordinates, localMotive?: Buffer): Promise<IImage[]> {
+        let emojiImageBuffer: Buffer
+        if (localMotive) {
+            // Same size as the 96px emoji it stands in for
+            emojiImageBuffer = await sharp(localMotive).resize({ width: 96, height: 96, fit: 'inside' }).png().toBuffer()
+        } else {
+            const url = await this.getEmojiImageUrl(item)
+            if (!url) return []
+            emojiImageBuffer = await this.getPngBufferForWebpUrl(url)
+        }
         // const resizedItem = await sharp(emojiImageBuffer).resize({ fit: sharp.fit.inside, width: 75 }).toBuffer()
         const canvas = await getCanvasImage({ buffer: emojiImageBuffer })
         const emojiImageArray: IImage[] = [{ ...this.getImageCoordinates(coord, canvas, 1), canvasImage: canvas }] // Must have layer 1
