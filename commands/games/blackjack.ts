@@ -113,6 +113,17 @@ export class Blackjack extends AbstractCommands {
      * buy-in so their session lands straight at a table configured with it, same as the deathroll
      * pot flow - others in the channel can then join in or just watch.
      */
+    /** "Bli med" / "Se på" under the message the Activity posts when someone starts a multiplayer table (blackjack, electricity,
+     * rød/svart). customId: MP_INVITE;{hostId};{game};{mode}. Same trick as DOND_SPECTATE: the Activity can only open at its root
+     * page, so what the clicker wanted is recorded first and the hub forwards them (see lib/multiplayerInvite.ts in the activities app). */
+    private async multiplayerInvite(interaction: BtnInteraction) {
+        const [, hostId, game, mode] = interaction.customId.split(';')
+        await this.client.database.updateData({
+            [`other/pendingMultiplayerInvite/${interaction.user.id}`]: { hostId, game, mode: mode === 'join' ? 'join' : 'watch', createdAt: Date.now() },
+        })
+        await interaction.launchActivity()
+    }
+
     private async launchMultiplayerBlackjack(interaction: ChatInteraction) {
         const stake = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
         if (stake > 0) {
@@ -738,6 +749,12 @@ export class Blackjack extends AbstractCommands {
                         commandName: 'BLACKJACK_REDEAL',
                         command: (interaction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.reDeal(game, player))
+                        },
+                    },
+                    {
+                        commandName: 'MP_INVITE',
+                        command: (interaction: BtnInteraction) => {
+                            this.multiplayerInvite(interaction)
                         },
                     },
                     {

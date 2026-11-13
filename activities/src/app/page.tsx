@@ -100,6 +100,17 @@ export default function Home() {
     })
   }, [accessToken, router])
 
+  // And for the "Bli med" / "Se på" buttons under a new multiplayer table's announcement (see lib/multiplayerInvite.ts).
+  useEffect(() => {
+    if (!accessToken) return
+    callApi<{ invite: { game: string; hostId: string; mode: string } | null }>("/api/multiplayer/pending-invite", accessToken).then((res) => {
+      if (res.invite) {
+        setRedirecting(true)
+        router.push(`/multiplayer/${res.invite.game}?invite=${encodeURIComponent(res.invite.hostId)}&mode=${res.invite.mode}`)
+      }
+    })
+  }, [accessToken, router])
+
   const loggedIn = ready && !!accessToken
 
   if (redirecting) {

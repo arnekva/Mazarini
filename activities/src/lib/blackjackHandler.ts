@@ -3,6 +3,7 @@ import { AuthenticatedDiscordUser } from "./discordAuth"
 import { Card, drawCard, freshShuffledDeck, handValue, isBlackjack } from "./blackjack"
 import { discordAvatarUrl } from "./discordAvatar"
 import { editLiveMessage, liveLogBody, LiveMessageRef, postLiveMessage, resolveAnnounceChannel } from "./discordMessage"
+import { inviteButtonsComponent } from "./multiplayerInvite"
 import { increment } from "firebase/database"
 import { after } from "next/server"
 import { chatEmbedFields, postChat, readChat, readChatTail } from "./gameChat"
@@ -356,11 +357,13 @@ function logIntro(lobby: BlackjackLobby) {
 }
 
 /** Edits the table's Discord message to reflect the rounds played so far (and the chat). Best-effort. */
-async function syncLog(firebase: FirebaseHelper, instanceId: string, lobby: BlackjackLobby, footer?: string) {
+async function syncLog(firebase: FirebaseHelper, instanceId: string, lobby: BlackjackLobby, footer?: string, closing = false) {
   if (!lobby.logRef) return
   try {
     const chat = await readChat(firebase, chatPath(instanceId, lobby.id))
-    await editLiveMessage(lobby.logRef, liveLogBody("Blackjack", logIntro(lobby), recap(lobby), chatEmbedFields(chat, lobby.hostId), footer))
+    const body = liveLogBody("Blackjack", logIntro(lobby), recap(lobby), chatEmbedFields(chat, lobby.hostId), footer)
+    // The "Bli med" / "Se på" buttons stay on through every edit (an edit without components leaves them alone) - until the table closes.
+    await editLiveMessage(lobby.logRef, closing ? { ...body, components: [] } : body)
   } catch (e) {
     console.error("Blackjack log update failed", e)
   }
@@ -368,7 +371,7 @@ async function syncLog(firebase: FirebaseHelper, instanceId: string, lobby: Blac
 
 /** Last edit of a table's message, when the table is closing - awaited (unlike the per-round ones), since the lobby and its chat are deleted right after. */
 async function closeLog(firebase: FirebaseHelper, instanceId: string, lobby: BlackjackLobby, note: string, reason: "left" | "disconnected") {
-  await syncLog(firebase, instanceId, lobby, reason === "disconnected" ? `${note} (mistet tilkoblingen)` : note)
+  await syncLog(firebase, instanceId, lobby, reason === "disconnected" ? `${note} (mistet tilkoblingen)` : note, true)
 }
 
 export async function postBlackjackChat(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser, text: unknown) {
@@ -1075,7 +1078,7 @@ export async function createBlackjackLobby(instanceId: string, user: Authenticat
     createdAt: Date.now(),
     updatedAt: Date.now(),
   }
-  const logRef = await postLiveMessage(channelId, liveLogBody("Blackjack", logIntro(lobby), [], []))
+  const logRef = await postLiveMessage(channelId, { ...liveLogBody("Blackjack", logIntro(lobby), [], []), components: [inviteButtonsComponent("blackjack", user.id)] })
   if (logRef) lobby.logRef = logRef
   await firebase.updateData({ [lobbyPath(instanceId, lobbyId)]: forDb(lobby), [`${presencePath(instanceId, lobbyId)}/${user.id}`]: Date.now() })
   return Response.json({ ...tableView(lobby, user.id, { chips: myChips }), chat: [] })

@@ -1,3 +1,6 @@
+import { after } from "next/server"
+import { announceInChannel } from "./discordMessage"
+import { inviteButtonsComponent } from "./multiplayerInvite"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { Card, drawCard, freshShuffledDeck } from "./blackjack"
@@ -404,6 +407,7 @@ export async function listRedBlackLobbies(instanceId: string, userId: string) {
   const all = await readAllLobbies(firebase, instanceId)
   const lobbies = Object.values(all).map((l) => ({
     id: l.id,
+    hostId: l.hostId,
     hostUsername: l.players[l.hostId]?.username ?? "?",
     numPlayers: l.playerOrder.length,
     numSpectators: Object.keys(l.spectators).length,
@@ -432,6 +436,13 @@ export async function createRedBlackLobby(instanceId: string, user: Authenticate
     updatedAt: Date.now(),
   }
   await writeLobby(firebase, instanceId, lobbyId, lobby)
+  after(() =>
+    announceInChannel(user.channelId, {
+      content: `<@${user.id}> har startet et bord med **Rød / Svart** - bli med eller se på!`,
+      components: [inviteButtonsComponent("redblack", user.id)],
+      allowed_mentions: { parse: [] },
+    })
+  )
   return Response.json(publicView(lobby, user.id))
 }
 

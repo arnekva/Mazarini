@@ -47,6 +47,7 @@ interface TableView {
 
 interface LobbySummary {
   id: string
+  hostId: string
   hostUsername: string
   numPlayers: number
   numSpectators: number
@@ -91,7 +92,7 @@ function seatPosition(index: number, count: number, myIndex: number) {
   return { left: `${50 + 40 * Math.cos(angle)}%`, top: `${50 + 36 * Math.sin(angle)}%` }
 }
 
-export function ElectricityGame({ accessToken }: { accessToken: string }) {
+export function ElectricityGame({ accessToken, invite }: { accessToken: string; invite?: { hostId: string; mode: "join" | "watch" } }) {
   const { instanceId, discordUser } = useDiscord()
   const [lobbies, setLobbies] = useState<LobbySummary[] | null>(null)
   const [lobbyId, setLobbyId] = useState<string | null>(null)
@@ -104,6 +105,9 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
   }
   const [table, setTable] = useState<TableView | null>(null)
   const [closedNotice, setClosedNotice] = useState(false)
+  const [goneNotice, setGoneNotice] = useState(false)
+  // Sent here from a "Bli med" / "Se på" button: acted on (once) as soon as the first list of tables is in.
+  const inviteRef = useRef(invite)
   const [chugOnLoop, setChugOnLoop] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -122,6 +126,15 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
         accessToken
       )
       setLobbies(res.lobbies)
+      const pending = inviteRef.current
+      if (pending && !lobbyIdRef.current) {
+        inviteRef.current = undefined
+        const target = res.lobbies.find((l) => l.hostId === pending.hostId)
+        if (!target) setGoneNotice(true)
+        else if (target.id === res.myLobbyId) enterLobby(target.id)
+        // A game that's already going can only be watched.
+        else return action(pending.mode === "join" && target.status === "waiting" ? "join" : "spectate", { lobbyId: target.id })
+      }
       if (res.myLobbyId && !lobbyId) enterLobby(res.myLobbyId)
     } catch {
       // transient poll failure - next tick retries
@@ -208,6 +221,7 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
     return (
       <>
         {closedNotice && <p className={shared.info}>Verten forlot bordet - bordet er stengt.</p>}
+        {goneNotice && <p className={shared.info}>Det bordet finnes ikke lenger.</p>}
         <p className={shared.info}>Velg et bord, eller start et nytt.</p>
 
         {lobbies === null && <p className={shared.info}>Laster bord...</p>}

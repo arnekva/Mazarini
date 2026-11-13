@@ -170,7 +170,15 @@ function HandBlock({ hand, result, active, isMine }: { hand: HandView; result?: 
   )
 }
 
-export function BlackjackGame({ accessToken, watchHostId }: { accessToken: string; watchHostId?: string }) {
+export function BlackjackGame({
+  accessToken,
+  watchHostId,
+  invite,
+}: {
+  accessToken: string
+  watchHostId?: string
+  invite?: { hostId: string; mode: "join" | "watch" }
+}) {
   const { instanceId, discordUser } = useDiscord()
   const [lobbies, setLobbies] = useState<LobbySummary[] | null>(null)
   const [lobbyId, setLobbyId] = useState<string | null>(null)
@@ -184,6 +192,9 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
   const [table, setTable] = useState<TableView | null>(null)
   const [closedNotice, setClosedNotice] = useState(false)
   const [removedNotice, setRemovedNotice] = useState(false)
+  const [goneNotice, setGoneNotice] = useState(false)
+  // Sent here from a "Bli med" / "Se på" button under a table's announcement: acted on (once) as soon as the first list of tables is in.
+  const inviteRef = useRef(invite)
   const [createBuyIn, setCreateBuyIn] = useState("0")
   const [betInput, setBetInput] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -247,6 +258,13 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
         accessToken
       )
       setLobbies(res.lobbies)
+      const pending = inviteRef.current
+      if (pending && !lobbyIdRef.current) {
+        inviteRef.current = undefined
+        const target = res.lobbies.find((l) => l.hostId === pending.hostId)
+        if (!target) setGoneNotice(true)
+        else if (target.id !== res.myLobbyId) return actionRef.current(pending.mode === "join" ? "join" : "spectate", { lobbyId: target.id })
+      }
       if (res.myLobbyId && !lobbyId) {
         setWaitingForHost(null)
         enterLobby(res.myLobbyId)
@@ -366,8 +384,9 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
   useEffect(() => {
     if (!instanceId || initedRef.current) return
     initedRef.current = true
-    if (watchHostId) {
+    if (watchHostId || invite) {
       // Sent here to watch someone's table: it may not exist yet, in which case refreshLobbies waits for it.
+      // (An invite's table already exists - refreshLobbies joins or watches it.)
       refreshLobbies()
       return
     }
@@ -426,6 +445,7 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
     return (
       <>
         {closedNotice && <p className={styles.info}>Verten forlot bordet - bordet er stengt.</p>}
+        {goneNotice && <p className={styles.info}>Det bordet finnes ikke lenger.</p>}
         {removedNotice && <p className={styles.info}>Du mistet tilkoblingen en stund og ble tatt av bordet.</p>}
         <p className={styles.info}>Velg et bord, eller start et nytt.</p>
 
