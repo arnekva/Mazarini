@@ -1,5 +1,5 @@
 import { after } from "next/server"
-import { announceInChannel } from "./discordMessage"
+import { announceInChannel, announceName } from "./discordMessage"
 import { inviteButtonsComponent } from "./multiplayerInvite"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
@@ -438,9 +438,8 @@ export async function createRedBlackLobby(instanceId: string, user: Authenticate
   await writeLobby(firebase, instanceId, lobbyId, lobby)
   after(() =>
     announceInChannel(user.channelId, {
-      content: `<@${user.id}> har startet et bord med **Rød / Svart** - bli med eller se på!`,
+      content: `${announceName(user)} har startet et bord med **Rød / Svart** - bli med eller se på!`,
       components: [inviteButtonsComponent("redblack", user.id)],
-      allowed_mentions: { parse: [] },
     })
   )
   return Response.json(publicView(lobby, user.id))
