@@ -26,9 +26,9 @@ export const countryChallengeValues = {
   /** Wrong guesses allowed on one item before its answer is shown and the next comes up. */
   maxAttempts: 3,
   /** Chips for each item guessed right, when a game has several. */
-  rewardPerCorrect: 400,
+  rewardPerCorrect: 800,
   /** Chips for solving the one item of a game that has just one. */
-  singleItemReward: 400,
+  singleItemReward: 800,
 }
 
 export const moreOrLessValues = {
@@ -50,7 +50,7 @@ export const mastermindValues = {
   codeLength: 4,
   colors: ["red", "blue", "yellow", "green", "black", "white"] as const,
   /** reward = baseReward - perGuessPenalty * numGuesses, floored at 0 */
-  baseReward: 3000,
+  baseReward: 5000,
   perGuessPenalty: 200,
 }
 
