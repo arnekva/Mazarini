@@ -850,7 +850,8 @@ export class ImageGenerationHelper {
         const inventory = new Array<IUserLootItem>()
         for (const rarity of ['common', 'rare', 'epic', 'legendary']) {
             const items = user.loot[series]?.inventory[rarity]?.items
-            if (items) inventory.push(...items)
+            // Traded/used cards keep their entry with amount 0; don't draw those as owned.
+            if (items) inventory.push(...items.filter((item) => item.amount > 0))
         }
         if (inventory.length == 0) return
         const cardImages = new Array<Buffer>()

@@ -255,8 +255,8 @@ export const GameValues: GameValuesType = {
         ],
         potSkip: { diceTarget: 200, roll: 69, potPenalty: 0 },
         addToPot: {
-            athStreakMultiplier: 2000,
-            streakMultiplier: 1000,
+            athStreakMultiplier: 2200,
+            streakMultiplier: 1100,
             biggestLossMultiplier: 20,
             largeNumberLossMultiplier: 3,
             minReward: 100,
@@ -287,8 +287,8 @@ export const GameValues: GameValuesType = {
                 4060, 1989, 170, 1001, 1914, 1918, 1939, 1945, 1969, 6040, 2469,
             ],
             unSpecialNumbers: [2025, 2027, 68, 70, 1998, 1995, 5718, 1436, 984, 4151],
-            multiplier: 1,
-            unSpecialNumberPenalty: -1,
+            multiplier: 1.5,
+            unSpecialNumberPenalty: -2,
         },
         tomasa: {
             baseChance: 0.001,
@@ -302,22 +302,22 @@ export const GameValues: GameValuesType = {
         },
         autoCompleteDiceDefault: 10002,
         printCurrentStateMaxFields: 25,
-        canGetFreeBlackackRedeal: false,
+        canGetFreeBlackackRedeal: true,
         shuffleIgnoresDigitsDefault: false,
     },
 
     // More or Less
     moreOrLess: {
         rewards: {
-            tier1: 200, // 1-10
-            tier2: 200, // 11-20
-            tier3: 200, // 21-30
-            tier4: 200, // 31-40
-            tier5: 200, // 41-50
+            tier1: 300, // 1-10
+            tier2: 300, // 11-20
+            tier3: 300, // 21-30
+            tier4: 300, // 31-40
+            tier5: 300, // 41-50
             tier6: 50, // 51+
-            completed: 1000,
-            bestAttempt: 2500,
-            bestAttemptShards: 5,
+            completed: 2500,
+            bestAttempt: 4000,
+            bestAttemptShards: 0,
         },
     },
 
@@ -352,10 +352,11 @@ export const GameValues: GameValuesType = {
 
     // Daily Claim
     daily: {
-        baseReward: 500,
+        baseReward: 1000,
         streakMultiplier: 1.0, // Multiplies with streak
-        streak4Reward: 1000,
+        streak4Reward: 'box',
         streak7Reward: 'chest',
+
         // Add more as needed
     },
 
@@ -400,27 +401,27 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 10, // percent chance to get an effect item
+        effectItemChance: 35, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
 
     // Blackjack
     blackjack: {
-        deathrollRefundEnabled: false, // If true, lostAddedBack is shown and refund is applied
+        deathrollRefundEnabled: true, // If true, lostAddedBack is shown and refund is applied
     },
     wordle: {
-        reward: 5000,
-        rewardShards: 5,
-        wordleCapPerPerson: 2500,
+        reward: 10000,
+        rewardShards: 0,
+        wordleCapPerPerson: 5000,
     },
     loot: {
         chestEffectOdds: {
-            basic: 0.0,
-            premium: 0.0,
-            elite: 0,
+            basic: 0.15,
+            premium: 0.25,
+            elite: 0.85,
         },
-        chestRerollOdds: 0.05,
+        chestRerollOdds: 0.15,
         artPrice: 10000,
     },
     mastermind: {

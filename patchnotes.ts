@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '37.0.3'
+    public static readonly currentVersion = '37.0.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['* Fikset Halo på loot', '* Mastermind gir nå 3000 - 200*antall gjett, opp fra 2000'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(['* Lootflasjon 1.0'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { RankTrack } from "@/app/api/spotify/playlist/route"
 import { isAdminUser } from "@/lib/admin"
-import { RankState, answer, currentCandidate, currentComparison, dedupe, init, keep, skip } from "@/lib/songRanker"
+import { RankState, answer, currentCandidate, currentComparison, dedupe, init, keep, replace, skip, undoChain, undoLabel } from "@/lib/songRanker"
 import { CompactProgress, fromCompact, loadCloudProgress, saveCloudProgress, toCompact } from "@/lib/songRankCloud"
 import { extractPlaylistId } from "@/lib/spotifyIds"
 import { clearProgress, loadProgress, saveProgress } from "@/lib/songRankStorage"
@@ -33,6 +33,8 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
   const [confirmOverwrite, setConfirmOverwrite] = useState(false)
   const [cloud, setCloud] = useState<CompactProgress | null>(null)
   const cloudTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Songs already added to the target playlist this session - undoing a "Behold" and keeping the song again mustn't add it twice.
+  const addedToTarget = useRef(new Set<string>())
 
   useEffect(() => {
     setSaved(loadProgress())
@@ -145,7 +147,7 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
   async function doKeep() {
     if (!state) return
     const track = currentCandidate(state)
-    if (track && state.targetPlaylistId) {
+    if (track && state.targetPlaylistId && !addedToTarget.current.has(track.id)) {
       setAddTrackError(null)
       try {
         const res = await fetch("/api/spotify/add-track", {
@@ -153,7 +155,8 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ playlistId: state.targetPlaylistId, trackId: track.id }),
         })
-        if (!res.ok) {
+        if (res.ok) addedToTarget.current.add(track.id)
+        else {
           const data = await res.json().catch(() => ({}))
           setAddTrackError(data.error ?? "Klarte ikke å legge til låten i spillelisten")
         }
@@ -167,6 +170,12 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
   function pick(candidateIsBetter: boolean) {
     if (!state) return
     update(answer(state, candidateIsBetter))
+  }
+
+  /** Throws away the whole chain of answers for a song - see undoChain. */
+  function undo() {
+    if (!state) return
+    update(undoChain(state))
   }
 
   function restart() {
@@ -267,6 +276,11 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
             </div>
           ))}
         </div>
+        {undoLabel(state) && (
+          <button className={styles.undoBtn} type="button" onClick={undo}>
+            ↶ Angre: {undoLabel(state)}
+          </button>
+        )}
         <button className={styles.restartBtn} type="button" onClick={restart}>
           Rangér en ny spilleliste
         </button>
@@ -295,7 +309,7 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
         {!state.pendingDecision && comparison && (
           <>
             <div className={styles.vsDivider}>VS</div>
-            <TrackCard track={comparison.opponent} onBetter={() => pick(false)} />
+            <TrackCard key={comparison.opponent.id} track={comparison.opponent} onBetter={() => pick(false)} />
           </>
         )}
       </div>
@@ -309,6 +323,11 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
           </button>
         </div>
       )}
+      {undoLabel(state) && (
+        <button className={styles.undoBtn} type="button" onClick={undo}>
+          ↶ Angre: {undoLabel(state)}
+        </button>
+      )}
       {addTrackError && <p className={styles.error}>{addTrackError}</p>}
       {state.ranked.length > 0 && (
         <>
@@ -320,6 +339,12 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
               {state.ranked.map((t, i) => (
                 <li key={t.id} className={!state.pendingDecision && i === mid ? styles.keptListActive : undefined}>
                   {i + 1}. {t.name}
+                  {/* Only between songs - re-placing in the middle of another song's comparisons would pull the ranking out from under it. */}
+                  {state.pendingDecision && state.ranked.length > 1 && (
+                    <button className={styles.replaceBtn} type="button" title="Ta den ut og plasser den på nytt" onClick={() => update(replace(state, t.id))}>
+                      Plasser på nytt
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -331,6 +356,8 @@ export function SongRankGame({ accessToken }: { accessToken: string | null }) {
 }
 
 function TrackCard({ track, onBetter }: { track: RankTrack; onBetter?: () => void }) {
+  // Spotify's embed sometimes gets stuck and won't play - a new key gives it a fresh iframe, without reloading the page and resuming.
+  const [embedLoads, setEmbedLoads] = useState(0)
   return (
     <div className={styles.trackCard}>
       <div className={styles.trackHeader}>
@@ -341,12 +368,16 @@ function TrackCard({ track, onBetter }: { track: RankTrack; onBetter?: () => voi
         </div>
       </div>
       <iframe
+        key={embedLoads}
         className={styles.embed}
         src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator`}
         height="80"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
         loading="lazy"
       />
+      <button className={styles.reloadEmbedBtn} type="button" onClick={() => setEmbedLoads((n) => n + 1)}>
+        Spilleren virker ikke? Last inn på nytt
+      </button>
       {onBetter && (
         <button className={styles.betterBtn} type="button" onClick={onBetter}>
           Denne er best

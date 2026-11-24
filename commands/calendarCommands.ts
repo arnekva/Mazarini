@@ -68,13 +68,16 @@ export class CalendarCommands extends AbstractCommands {
 
     private resetShuffleEffect() {
         // Reset shuffleIgnoresDigits for global storage if present
-        this.client.database.getStorage?.().then((storage) => {
-            if (storage?.effects?.positive?.shuffleIgnoresDigits) {
-                storage.effects.positive.shuffleIgnoresDigits = GameValues.deathroll.shuffleIgnoresDigitsDefault
-                this.client.database.updateStorage?.(storage)
-                this.client.cache.shuffleIgnoresDigits = GameValues.deathroll.shuffleIgnoresDigitsDefault
-            }
-        }).catch((error) => this.messageHelper.sendLogMessage(`Feil i resetShuffleEffect: ${error}`))
+        this.client.database
+            .getStorage?.()
+            .then((storage) => {
+                if (storage?.effects?.positive?.shuffleIgnoresDigits) {
+                    storage.effects.positive.shuffleIgnoresDigits = GameValues.deathroll.shuffleIgnoresDigitsDefault
+                    this.client.database.updateStorage?.(storage)
+                    this.client.cache.shuffleIgnoresDigits = GameValues.deathroll.shuffleIgnoresDigitsDefault
+                }
+            })
+            .catch((error) => this.messageHelper.sendLogMessage(`Feil i resetShuffleEffect: ${error}`))
         return true
     }
 
